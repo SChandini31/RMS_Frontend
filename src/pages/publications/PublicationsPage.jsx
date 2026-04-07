@@ -12,27 +12,52 @@ const PublicationsPage = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
 
+  const isSuperAdmin = user?.role === "super_admin";
+  const isFaculty = user?.role === "faculty";
+  const isDirectorate = user?.role === "directorate";
+  const isStudent = user?.role === "student";
+
+  const showAddButton = isSuperAdmin || isFaculty || isStudent;
+  const showFileColumn = isSuperAdmin || isFaculty || isDirectorate;
+  const showActionsColumn = isFaculty || isDirectorate;
+
   useEffect(() => {
     fetchPublications();
   }, []);
 
   const fetchPublications = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const res = await axios.get(`${API_BASE}/api/publications`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const res = await axios.get(`${API_BASE}/api/publications`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      setPublications(res.data || []);
-    } catch (error) {
-      console.error("FETCH PUBLICATIONS ERROR:", error);
-    } finally {
-      setLoading(false);
+    let filteredData = res.data || [];
+
+    // only student should be restricted to own publications on frontend
+    if (user?.role === "student") {
+      filteredData = filteredData.filter(
+        (pub) => pub.uploadedBy?._id === user?._id
+      );
     }
-  };
+
+    // admin -> department only
+    if (user?.role === "admin") {
+      filteredData = filteredData.filter(
+        (pub) => pub.department === user?.department
+      );
+    }
+
+    setPublications(filteredData);
+  } catch (error) {
+    console.error("FETCH PUBLICATIONS ERROR:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleStatusChange = async (id, status, rejectionReason = "") => {
     try {
@@ -62,17 +87,6 @@ const PublicationsPage = () => {
     return reason || "";
   };
 
-  const canAdd =
-    user?.role === "faculty" || user?.role === "student";
-
-  const canDownload =
-    user?.role === "super_admin" ||
-    user?.role === "faculty" ||
-    user?.role === "directorate";
-
-  const isFaculty = user?.role === "faculty";
-  const isDirectorate = user?.role === "directorate";
-
   const getStatusBadgeClass = (status) => {
     if (status === "approved") {
       return "bg-green-100 text-green-700";
@@ -93,7 +107,7 @@ const PublicationsPage = () => {
           </p>
         </div>
 
-        {canAdd && (
+        {showAddButton && (
           <Link
             to="/publications/add"
             className="bg-apolloBlue text-white px-4 py-2 rounded-xl"
@@ -109,7 +123,7 @@ const PublicationsPage = () => {
         ) : publications.length === 0 ? (
           <p className="text-[#98A4AA]">No publications found</p>
         ) : (
-          <table className="w-full min-w-[1200px] text-sm">
+          <table className="w-full min-w-[1050px] text-sm">
             <thead>
               <tr className="text-left text-[#6F7C83] border-b">
                 <th className="py-3 pr-4">Title</th>
@@ -118,8 +132,8 @@ const PublicationsPage = () => {
                 <th className="pr-4">Faculty Status</th>
                 <th className="pr-4">Directorate Status</th>
                 <th className="pr-4">Final Status</th>
-                <th className="pr-4">File</th>
-                <th>Actions</th>
+                {showFileColumn && <th className="pr-4">File</th>}
+                {showActionsColumn && <th>Actions</th>}
               </tr>
             </thead>
 
@@ -135,18 +149,25 @@ const PublicationsPage = () => {
                   pub.finalStatus === "pending";
 
                 return (
-                  <tr key={pub._id} className="border-b hover:bg-[#F7F8F8] align-top">
-                    <td className="py-3 pr-4 font-medium text-[#17313C]">
+                  <tr
+                    key={pub._id}
+                    className="border-b hover:bg-[#F7F8F8] align-middle"
+                  >
+                    <td className="py-4 pr-4 font-medium text-[#17313C] whitespace-nowrap">
                       {pub.title || "Untitled"}
                     </td>
 
-                    <td className="pr-4">{pub.department || "-"}</td>
+                    <td className="pr-4 whitespace-nowrap">
+                      {pub.department || "-"}
+                    </td>
 
-                    <td className="pr-4">{pub.uploadedBy?.name || "-"}</td>
+                    <td className="pr-4 whitespace-nowrap">
+                      {pub.uploadedBy?.name || "-"}
+                    </td>
 
-                    <td className="pr-4">
+                    <td className="pr-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusBadgeClass(
+                        className={`inline-block px-2 py-1 rounded-lg text-xs font-medium ${getStatusBadgeClass(
                           pub.facultyApprovalStatus
                         )}`}
                       >
@@ -154,9 +175,9 @@ const PublicationsPage = () => {
                       </span>
                     </td>
 
-                    <td className="pr-4">
+                    <td className="pr-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusBadgeClass(
+                        className={`inline-block px-2 py-1 rounded-lg text-xs font-medium ${getStatusBadgeClass(
                           pub.directorateApprovalStatus
                         )}`}
                       >
@@ -164,9 +185,9 @@ const PublicationsPage = () => {
                       </span>
                     </td>
 
-                    <td className="pr-4">
+                    <td className="pr-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusBadgeClass(
+                        className={`inline-block px-2 py-1 rounded-lg text-xs font-medium ${getStatusBadgeClass(
                           pub.finalStatus
                         )}`}
                       >
@@ -174,76 +195,80 @@ const PublicationsPage = () => {
                       </span>
                     </td>
 
-                    <td className="pr-4">
-                      {pub.upload && canDownload ? (
-                        <a
-                          href={pub.upload}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[#1B7F8B] underline"
-                        >
-                          Download
-                        </a>
-                      ) : (
-                        <span className="text-[#98A4AA]">Not allowed</span>
-                      )}
-                    </td>
-
-                    <td className="py-3">
-                      <div className="flex gap-2 flex-wrap">
-                        {facultyCanAct && (
-                          <>
-                            <button
-                              onClick={() => handleStatusChange(pub._id, "approved")}
-                              className="text-green-600 text-xs font-medium"
-                            >
-                              Faculty Approve
-                            </button>
-
-                            <button
-                              onClick={() =>
-                                handleStatusChange(
-                                  pub._id,
-                                  "rejected",
-                                  askRejectionReason()
-                                )
-                              }
-                              className="text-red-500 text-xs font-medium"
-                            >
-                              Faculty Reject
-                            </button>
-                          </>
+                    {showFileColumn && (
+                      <td className="pr-4 whitespace-nowrap">
+                        {pub.upload ? (
+                          <a
+                            href={pub.upload}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[#1B7F8B] underline"
+                          >
+                            Download
+                          </a>
+                        ) : (
+                          <span className="text-[#98A4AA]">No file</span>
                         )}
+                      </td>
+                    )}
 
-                        {directorateCanAct && (
-                          <>
-                            <button
-                              onClick={() => handleStatusChange(pub._id, "approved")}
-                              className="text-green-600 text-xs font-medium"
-                            >
-                              Directorate Approve
-                            </button>
+                    {showActionsColumn && (
+                      <td className="py-4 whitespace-nowrap">
+                        <div className="flex gap-3 items-center">
+                          {facultyCanAct && (
+                            <>
+                              <button
+                                onClick={() => handleStatusChange(pub._id, "approved")}
+                                className="text-green-600 text-xs font-medium"
+                              >
+                                Approve
+                              </button>
 
-                            <button
-                              onClick={() =>
-                                handleStatusChange(
-                                  pub._id,
-                                  "rejected",
-                                  askRejectionReason()
-                                )
-                              }
-                              className="text-red-500 text-xs font-medium"
-                            >
-                              Directorate Reject
-                            </button>
-                          </>
-                        )}
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(
+                                    pub._id,
+                                    "rejected",
+                                    askRejectionReason()
+                                  )
+                                }
+                                className="text-red-500 text-xs font-medium"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
 
-                        {!facultyCanAct && !directorateCanAct && (
-                          <span className="text-[#98A4AA] text-xs">View only</span>
-                        )}
-                      </div>
-                    </td>
+                          {directorateCanAct && (
+                            <>
+                              <button
+                                onClick={() => handleStatusChange(pub._id, "approved")}
+                                className="text-green-600 text-xs font-medium"
+                              >
+                                Approve
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(
+                                    pub._id,
+                                    "rejected",
+                                    askRejectionReason()
+                                  )
+                                }
+                                className="text-red-500 text-xs font-medium"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+
+                          {!facultyCanAct && !directorateCanAct && (
+                            <span className="text-[#98A4AA] text-xs">No actions</span>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
