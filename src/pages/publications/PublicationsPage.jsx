@@ -35,21 +35,25 @@ const PublicationsPage = () => {
       },
     });
 
+    console.log("Frontend user:", user);
+    console.log("Frontend role:", user?.role);
+    console.log("Raw publications:", res.data);
+
     let filteredData = res.data || [];
 
-    // only student should be restricted to own publications on frontend
     if (user?.role === "student") {
       filteredData = filteredData.filter(
         (pub) => pub.uploadedBy?._id === user?._id
       );
     }
 
-    // admin -> department only
     if (user?.role === "admin") {
       filteredData = filteredData.filter(
         (pub) => pub.department === user?.department
       );
     }
+
+    console.log("Filtered publications:", filteredData);
 
     setPublications(filteredData);
   } catch (error) {
