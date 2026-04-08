@@ -160,6 +160,37 @@ const AuditLogsPage = () => {
     [stats]
   );
 
+  const StatCard = ({ title, value, color }) => {
+  const colorStyles = {
+    blue: "from-blue-500/20 to-blue-100 text-blue-600",
+    green: "from-green-500/20 to-green-100 text-green-600",
+    purple: "from-purple-500/20 to-purple-100 text-purple-600",
+    orange: "from-orange-500/20 to-orange-100 text-orange-600",
+  };
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-2xl p-5 border border-[#E5EAF0] bg-white 
+      shadow-sm transition-all duration-300 
+      hover:-translate-y-1 hover:shadow-md hover:scale-[1.03]`}
+    >
+      {/* Gradient glow */}
+      <div
+        className={`absolute top-0 right-0 w-20 h-20 rounded-bl-full bg-gradient-to-br ${colorStyles[color]}`}
+      />
+
+      {/* Content */}
+      <div className="relative">
+        <p className="text-sm text-gray-500">{title}</p>
+
+        <h2 className="mt-2 text-3xl font-bold text-[#17313C]">
+          {value}
+        </h2>
+      </div>
+    </div>
+  );
+};
+
   return (
     <DashboardLayout>
       <div className="space-y-3">
@@ -172,7 +203,7 @@ const AuditLogsPage = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 ">
           <StatCard title="Total Logs" value={stats.totalLogs || 0} color="blue" />
           <StatCard title="User Actions" value={stats.userActions || 0} color="green" />
           <StatCard
