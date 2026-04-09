@@ -4,7 +4,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const API_BASE = "https://rms-897z.onrender.com";
-// const API_BASE = "";
 
 const AddUsersPage = () => {
   const navigate = useNavigate();
@@ -18,6 +17,7 @@ const AddUsersPage = () => {
     role: "",
     department: "",
     school: "",
+    contact_number: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -28,7 +28,11 @@ const AddUsersPage = () => {
   const labelClass = "block text-sm font-semibold text-[#4E5D66] mb-2";
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -42,7 +46,17 @@ const AddUsersPage = () => {
     try {
       setSubmitting(true);
 
-      const res = await axios.post(`${API_BASE}/api/users`, form, {
+      const payload = {
+        ...form,
+        name: form.name.trim(),
+        email: form.email.trim(),
+        role: form.role.trim(),
+        department: form.department.trim(),
+        school: form.school.trim(),
+        contact_number: form.contact_number.trim(),
+      };
+
+      const res = await axios.post(`${API_BASE}/api/users`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -74,12 +88,13 @@ const AddUsersPage = () => {
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-3xl border border-[#E1E7EA] shadow-sm p-6 space-y-6"
+          className="bg-white rounded-2xl border border-[#E1E7EA] shadow-sm p-6 space-y-7"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className={labelClass}>Name *</label>
               <input
+                type="text"
                 name="name"
                 value={form.name}
                 onChange={handleChange}
@@ -116,6 +131,19 @@ const AddUsersPage = () => {
             </div>
 
             <div>
+              <label className={labelClass}>Contact Number *</label>
+              <input
+                type="text"
+                name="contact_number"
+                value={form.contact_number}
+                onChange={handleChange}
+                required
+                placeholder="Enter contact number"
+                className={inputClass}
+              />
+            </div>
+
+            <div>
               <label className={labelClass}>Role *</label>
               <select
                 name="role"
@@ -137,6 +165,7 @@ const AddUsersPage = () => {
             <div>
               <label className={labelClass}>Department *</label>
               <input
+                type="text"
                 name="department"
                 value={form.department}
                 onChange={handleChange}
@@ -149,6 +178,7 @@ const AddUsersPage = () => {
             <div>
               <label className={labelClass}>School *</label>
               <input
+                type="text"
                 name="school"
                 value={form.school}
                 onChange={handleChange}
@@ -163,7 +193,7 @@ const AddUsersPage = () => {
             <button
               type="button"
               onClick={() => navigate("/users")}
-              className="px-6 py-3 rounded-2xl border border-[#DCE3E6] text-[#4E5D66] hover:bg-[#F8FAFB]"
+              className="px-6 py-3 rounded-2xl border border-[#DCE3E6] text-[#4E5D66] transition-all duration-300 hover:bg-[#F8FAFB] hover:shadow-sm active:scale-95"
             >
               Cancel
             </button>
@@ -171,7 +201,7 @@ const AddUsersPage = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="px-8 py-3 rounded-2xl bg-apolloBlue text-white font-semibold hover:bg-[#0C5E78] transition disabled:opacity-70"
+              className="px-8 py-3 rounded-2xl bg-apolloBlue text-white font-semibold transition-all duration-300 hover:bg-[#0C5E78] hover:shadow-md hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:hover:translate-y-0"
             >
               {submitting ? "Creating..." : "Create User"}
             </button>

@@ -219,8 +219,8 @@ const AuditLogsPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-2xl border border-[#E1E7EA] shadow-sm p-5">
-          <div className="flex items-center gap-2 flex-wrap md: flex-nowrap">
+        <div className="bg-white rounded-2xl border border-[#E1E7EA] shadow-sm p-4">
+          <div className="flex items-center gap-1 flex-wrap md: flex-nowrap">
             <select
               className={inputClass}
               value={filters.school}

@@ -28,9 +28,14 @@ const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [selectedSchool, setSelectedSchool] = useState("");
 
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
+
+  const role = dashboardData?.role || user?.role;
+  const isSchoolFilterRole =
+    role === "super_admin" || role === "special_user";
 
   useEffect(() => {
     const fetchDashboardSummary = async () => {
@@ -38,14 +43,22 @@ const DashboardPage = () => {
         setLoading(true);
         setErrorMsg("");
 
-        const res = await axios.get(`${API_BASE}/api/dashboard/summary`, {
+        const url = selectedSchool
+          ? `${API_BASE}/api/dashboard/summary?school=${encodeURIComponent(
+              selectedSchool
+            )}`
+          : `${API_BASE}/api/dashboard/summary`;
+
+        const res = await axios.get(url, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
         console.log("Dashboard summary response:", res.data);
+        console.log("School stats:", res.data?.overview?.schoolStats);
         console.log("Department stats:", res.data?.overview?.departmentStats);
+        console.log("Selected school:", res.data?.overview?.selectedSchool);
 
         setDashboardData(res.data);
       } catch (error) {
@@ -67,9 +80,8 @@ const DashboardPage = () => {
       setLoading(false);
       setErrorMsg("No token found. Please login again.");
     }
-  }, [token]);
+  }, [token, selectedSchool]);
 
-  const role = dashboardData?.role || user?.role;
   const summary = dashboardData?.summary || {};
   const overview = dashboardData?.overview || {};
 
@@ -86,7 +98,7 @@ const DashboardPage = () => {
         {
           title: "Total Publications",
           value: summary.totalPublications ?? 0,
-          note: "Institution-wide",
+          note: selectedSchool ? `In ${selectedSchool}` : "Institution-wide",
           noteColor: "text-emerald-600",
           ring: "from-emerald-500/20 to-emerald-100",
         },
@@ -170,7 +182,7 @@ const DashboardPage = () => {
         },
         {
           title: "Approved Records",
-          value: overview?.statusStats?.approved ?? 0,
+          value: summary.approved ?? overview?.statusStats?.approved ?? 0,
           note: "Completed approvals",
           noteColor: "text-emerald-600",
           ring: "from-emerald-500/20 to-emerald-100",
@@ -183,20 +195,20 @@ const DashboardPage = () => {
         {
           title: "Total Publications",
           value: summary.totalPublications ?? 0,
-          note: "View-only overview",
+          note: selectedSchool ? `In ${selectedSchool}` : "Across all schools",
           noteColor: "text-sky-600",
           ring: "from-sky-500/20 to-sky-100",
         },
         {
           title: "Approved",
-          value: overview?.statusStats?.approved ?? 0,
+          value: summary.approved ?? overview?.statusStats?.approved ?? 0,
           note: "Institution records",
           noteColor: "text-emerald-600",
           ring: "from-emerald-500/20 to-emerald-100",
         },
         {
           title: "Pending",
-          value: overview?.statusStats?.pending ?? 0,
+          value: summary.pending ?? overview?.statusStats?.pending ?? 0,
           note: "Current queue",
           noteColor: "text-amber-600",
           ring: "from-amber-500/20 to-amber-100",
@@ -209,44 +221,57 @@ const DashboardPage = () => {
 
   const cards = getCardsByRole();
 
+  const availableSchools = useMemo(() => {
+    return (overview?.schoolStats || [])
+      .map((item) => item.school)
+      .filter(Boolean);
+  }, [overview]);
+
   const pieData = useMemo(() => {
-    if (overview?.departmentStats?.length > 0) {
-      return overview.departmentStats
+    if (role === "super_admin" || role === "special_user") {
+      if (selectedSchool) {
+        return (overview?.departmentStats || [])
+          .map((item) => ({
+            name: item.department || "Unknown",
+            value: Number(item.count) || 0,
+          }))
+          .filter((item) => item.value > 0);
+      }
+
+      return (overview?.schoolStats || [])
         .map((item) => ({
-          name: item.department || "Unknown",
+          name: item.school || "Unknown",
           value: Number(item.count) || 0,
         }))
         .filter((item) => item.value > 0);
     }
 
-    if (overview?.statusStats) {
-      return [
-        {
-          name: "Approved",
-          value: Number(overview.statusStats.approved) || 0,
-        },
-        {
-          name: "Pending",
-          value: Number(overview.statusStats.pending) || 0,
-        },
-        {
-          name: "Rejected",
-          value: Number(overview.statusStats.rejected) || 0,
-        },
-      ].filter((item) => item.value > 0);
-    }
-
-    return [];
-  }, [overview]);
+    return [
+      {
+        name: "Approved",
+        value: Number(overview?.statusStats?.approved) || 0,
+      },
+      {
+        name: "Pending",
+        value: Number(overview?.statusStats?.pending) || 0,
+      },
+      {
+        name: "Rejected",
+        value: Number(overview?.statusStats?.rejected) || 0,
+      },
+    ].filter((item) => item.value > 0);
+  }, [overview, role, selectedSchool]);
 
   const totalPieValue = useMemo(() => {
     return pieData.reduce((sum, item) => sum + item.value, 0);
   }, [pieData]);
 
-  const chartTitle =
-    overview?.departmentStats?.length > 0
-      ? "Department Distribution"
-      : "Status Distribution";
+  const chartTitle = useMemo(() => {
+    if (role === "super_admin" || role === "special_user") {
+      return selectedSchool ? "Department Distribution" : "School Distribution";
+    }
+    return "Status Distribution";
+  }, [role, selectedSchool]);
 
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload || !payload.length) return null;
@@ -266,6 +291,25 @@ const DashboardPage = () => {
         </p>
       </div>
     );
+  };
+
+  const getPublicationStatusText = (item) => {
+    if (item.finalStatus === "approved") return "Approved";
+    if (
+      item.facultyApprovalStatus === "rejected" ||
+      item.directorateApprovalStatus === "rejected" ||
+      item.finalStatus === "rejected"
+    ) {
+      return "Rejected";
+    }
+    if (
+      item.facultyApprovalStatus === "approved" &&
+      item.directorateApprovalStatus === "pending"
+    ) {
+      return "Pending Directorate";
+    }
+    if (item.facultyApprovalStatus === "pending") return "Pending Faculty";
+    return "Pending";
   };
 
   return (
@@ -320,7 +364,9 @@ const DashboardPage = () => {
                         {item.title}
                       </p>
                       <p className="mt-1 text-sm text-[#7A878E]">
-                        {item.department || "No Department"} • {item.status || "N/A"}
+                        {(item.school ? `${item.school} • ` : "")}
+                        {(item.department ? `${item.department} • ` : "")}
+                        {getPublicationStatusText(item)}
                       </p>
                     </div>
                   ))
@@ -333,13 +379,31 @@ const DashboardPage = () => {
             </div>
 
             <div className="rounded-3xl border border-[#E1E7EA] bg-white p-6 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h3 className="text-xl font-bold text-[#17313C]">Overview</h3>
                   <p className="mt-1 text-sm text-[#7A878E]">{chartTitle}</p>
                 </div>
-                <div className="rounded-full bg-[#F4F8FA] px-3 py-1 text-xs font-medium text-[#1B7F8B]">
-                  {role?.replace("_", " ") || "dashboard"}
+
+                <div className="flex flex-col items-stretch gap-2 sm:items-end">
+                  <div className="rounded-full bg-[#F4F8FA] px-3 py-1 text-xs font-medium text-[#1B7F8B] w-fit">
+                    {role?.replace("_", " ") || "dashboard"}
+                  </div>
+
+                  {isSchoolFilterRole && (
+                    <select
+                      value={selectedSchool}
+                      onChange={(e) => setSelectedSchool(e.target.value)}
+                      className="rounded-xl border border-[#D8E2E7] bg-white px-3 py-2 text-sm text-[#17313C] outline-none focus:border-[#1B7F8B]"
+                    >
+                      <option value="">All Schools</option>
+                      {availableSchools.map((school) => (
+                        <option key={school} value={school}>
+                          {school}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </div>
 
