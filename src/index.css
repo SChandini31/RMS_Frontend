@@ -4,6 +4,4 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'Poppins', sans-serif;
-}
+@import "./global.css";

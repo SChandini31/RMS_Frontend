@@ -74,15 +74,17 @@ const MetricsPage = () => {
 
   const handleDownload = async (type) => {
     try {
-      const response = await axios.get(
-        `${API_BASE}/api/reports/publications/export/${type}?from=${fromDate}&to=${toDate}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          responseType: "blob",
-        }
-      );
+      const url =
+        type === "excel"
+          ? `${API_BASE}/api/reports/publications/export/excel?from=${fromDate}&to=${toDate}`
+          : `${API_BASE}/api/reports/publications/export/pdf?from=${fromDate}&to=${toDate}`;
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: "blob",
+      });
 
       const blob = new Blob([response.data], {
         type:
@@ -91,9 +93,9 @@ const MetricsPage = () => {
             : "application/pdf",
       });
 
-      const url = window.URL.createObjectURL(blob);
+      const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
+      link.href = downloadUrl;
       link.download =
         type === "excel"
           ? `publication-report-${fromDate}-to-${toDate}.xlsx`
@@ -102,7 +104,7 @@ const MetricsPage = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error(`DOWNLOAD ${type.toUpperCase()} ERROR:`, error.response?.data || error.message);
       setErrorMsg(

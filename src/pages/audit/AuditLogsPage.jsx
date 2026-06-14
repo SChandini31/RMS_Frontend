@@ -220,9 +220,9 @@ const AuditLogsPage = () => {
 
         {/* Filters */}
         <div className="bg-white rounded-2xl border border-[#E1E7EA] shadow-sm p-4">
-          <div className="flex items-center gap-1 flex-wrap md: flex-nowrap">
+          <div className="flex flex-wrap items-center gap-3">
             <select
-              className={inputClass}
+              className={`${inputClass} min-w-[12rem] flex-1`}
               value={filters.school}
               onChange={(e) =>
                 setFilters({ ...filters, school: e.target.value })
@@ -237,7 +237,7 @@ const AuditLogsPage = () => {
             </select>
 
             <select
-              className={inputClass}
+              className={`${inputClass} min-w-[12rem] flex-1`}
               value={filters.department}
               onChange={(e) =>
                 setFilters({ ...filters, department: e.target.value })
@@ -253,7 +253,7 @@ const AuditLogsPage = () => {
 
             <input
               type="date"
-              className={inputClass}
+              className={`${inputClass} min-w-[12rem] flex-1`}
               value={filters.from}
               onChange={(e) =>
                 setFilters({ ...filters, from: e.target.value })
@@ -262,7 +262,7 @@ const AuditLogsPage = () => {
 
             <input
               type="date"
-              className={inputClass}
+              className={`${inputClass} min-w-[12rem] flex-1`}
               value={filters.to}
               onChange={(e) =>
                 setFilters({ ...filters, to: e.target.value })
@@ -271,21 +271,21 @@ const AuditLogsPage = () => {
 
             <button
               onClick={applyFilters}
-              className="h-11 rounded-xl bg-apolloBlue text-white px-5 text-sm font-medium hover:bg-[#0C5E78] transition"
+              className="h-11 w-full sm:w-auto rounded-xl bg-apolloBlue text-white px-5 text-sm font-medium hover:bg-[#0C5E78] transition"
             >
               Apply
             </button>
 
             <button
               onClick={resetFilters}
-              className="h-11 rounded-xl border border-[#DCE3E6] px-5 text-sm font-medium text-[#4E5D66] hover:bg-[#F8FAFB] transition"
+              className="h-11 w-full sm:w-auto rounded-xl border border-[#DCE3E6] px-5 text-sm font-medium text-[#4E5D66] hover:bg-[#F8FAFB] transition"
             >
               Reset
             </button>
 
             <button
               onClick={downloadExcel}
-              className="h-11 rounded-xl bg-green-600 text-white px-4 text-sm font-medium hover:bg-green-700 transition"
+              className="h-11 w-full sm:w-auto rounded-xl bg-green-600 text-white px-4 text-sm font-medium hover:bg-green-700 transition"
             >
               Excel
             </button>
