@@ -8,6 +8,8 @@ const API_BASE = "https://rms-897z.onrender.com";
 const PublicationsPage = () => {
   const [publications, setPublications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
@@ -101,6 +103,36 @@ const PublicationsPage = () => {
     return "bg-yellow-100 text-yellow-700";
   };
 
+  const filterByDate = (data) => {
+    if (!fromDate && !toDate) return data;
+
+    return data.filter((pub) => {
+      const pubDate = pub.date_of_publication
+        ? new Date(pub.date_of_publication)
+        : pub.createdAt
+        ? new Date(pub.createdAt)
+        : null;
+
+      if (!pubDate) return false;
+
+      if (fromDate) {
+        const start = new Date(fromDate);
+        start.setHours(0, 0, 0, 0);
+        if (pubDate < start) return false;
+      }
+
+      if (toDate) {
+        const end = new Date(toDate);
+        end.setHours(23, 59, 59, 999);
+        if (pubDate > end) return false;
+      }
+
+      return true;
+    });
+  };
+
+  const filteredPublications = filterByDate(publications);
+
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-5">
@@ -121,10 +153,46 @@ const PublicationsPage = () => {
         )}
       </div>
 
+      <div className="bg-white rounded-2xl p-6 shadow border border-apolloBorder mb-6">
+        <h3 className="text-lg font-semibold text-apolloBlue mb-4">Filter by Date</h3>
+        <div className="flex flex-wrap gap-4 items-end">
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-[#6F7C83] mb-2">From Date</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="px-3 py-2 border border-apolloBorder rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-apolloBlue"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-[#6F7C83] mb-2">To Date</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="px-3 py-2 border border-apolloBorder rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-apolloBlue"
+            />
+          </div>
+          {(fromDate || toDate) && (
+            <button
+              type="button"
+              onClick={() => {
+                setFromDate("");
+                setToDate("");
+              }}
+              className="px-4 py-2 bg-[#E8ECED] text-[#6F7C83] rounded-lg text-sm font-medium hover:bg-[#D8DFDD]"
+            >
+              Clear Dates
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl p-6 shadow border border-apolloBorder overflow-x-auto">
         {loading ? (
           <p className="text-[#7A878E]">Loading publications...</p>
-        ) : publications.length === 0 ? (
+        ) : filteredPublications.length === 0 ? (
           <p className="text-[#98A4AA]">No publications found</p>
         ) : (
           <table className="w-full min-w-[1050px] text-sm">
@@ -142,7 +210,7 @@ const PublicationsPage = () => {
             </thead>
 
             <tbody>
-              {publications.map((pub) => {
+              {filteredPublications.map((pub) => {
                 const facultyCanAct =
                   isFaculty && pub.facultyApprovalStatus === "pending";
 
