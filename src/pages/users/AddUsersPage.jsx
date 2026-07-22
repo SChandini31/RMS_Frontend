@@ -22,11 +22,6 @@ const AddUsersPage = () => {
 
   const [submitting, setSubmitting] = useState(false);
 
-  const inputClass =
-    "w-full rounded-2xl border border-[#DCE3E6] bg-white px-4 py-3 text-sm text-[#17313C] outline-none transition focus:border-[#35B8D6] focus:ring-4 focus:ring-[#DDF4F8] placeholder:text-[#9AA7AE]";
-
-  const labelClass = "block text-sm font-semibold text-[#4E5D66] mb-2";
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -78,21 +73,16 @@ const AddUsersPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto">
+      <div className="container-sm">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-apolloBlue">Add User</h1>
-          <p className="text-sm text-[#7A878E] mt-1">
-            Create a new RMS user account.
-          </p>
+          <h1 className="page-title">Add User</h1>
+          <p className="page-subtitle">Create a new RMS user account.</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-2xl border border-[#E1E7EA] shadow-sm p-6 space-y-7"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="form-card form-stack">
+          <div className="form-grid-2">
             <div>
-              <label className={labelClass}>Name *</label>
+              <label className="form-label">Name *</label>
               <input
                 type="text"
                 name="name"
@@ -100,12 +90,12 @@ const AddUsersPage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter full name"
-                className={inputClass}
+                className="form-input"
               />
             </div>
 
             <div>
-              <label className={labelClass}>Email *</label>
+              <label className="form-label">Email *</label>
               <input
                 type="email"
                 name="email"
@@ -113,12 +103,12 @@ const AddUsersPage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter email"
-                className={inputClass}
+                className="form-input"
               />
             </div>
 
             <div>
-              <label className={labelClass}>Password *</label>
+              <label className="form-label">Password *</label>
               <input
                 type="text"
                 name="password"
@@ -126,12 +116,12 @@ const AddUsersPage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter temporary password"
-                className={inputClass}
+                className="form-input"
               />
             </div>
 
             <div>
-              <label className={labelClass}>Contact Number *</label>
+              <label className="form-label">Contact Number *</label>
               <input
                 type="text"
                 name="contact_number"
@@ -139,18 +129,18 @@ const AddUsersPage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter contact number"
-                className={inputClass}
+                className="form-input"
               />
             </div>
 
             <div>
-              <label className={labelClass}>Role *</label>
+              <label className="form-label">Role *</label>
               <select
                 name="role"
                 value={form.role}
                 onChange={handleChange}
                 required
-                className={inputClass}
+                className="form-input"
               >
                 <option value="">Select role</option>
                 <option value="super_admin">Super Admin</option>
@@ -163,7 +153,7 @@ const AddUsersPage = () => {
             </div>
 
             <div>
-              <label className={labelClass}>Department *</label>
+              <label className="form-label">Department *</label>
               <input
                 type="text"
                 name="department"
@@ -171,12 +161,12 @@ const AddUsersPage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter department"
-                className={inputClass}
+                className="form-input"
               />
             </div>
 
             <div>
-              <label className={labelClass}>School *</label>
+              <label className="form-label">School *</label>
               <input
                 type="text"
                 name="school"
@@ -184,16 +174,16 @@ const AddUsersPage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter school"
-                className={inputClass}
+                className="form-input"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div className="btn-group-end">
             <button
               type="button"
               onClick={() => navigate("/users")}
-              className="px-6 py-3 rounded-2xl border border-[#DCE3E6] text-[#4E5D66] transition-all duration-300 hover:bg-[#F8FAFB] hover:shadow-sm active:scale-95"
+              className="btn-cancel"
             >
               Cancel
             </button>
@@ -201,7 +191,7 @@ const AddUsersPage = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="px-8 py-3 rounded-2xl bg-apolloBlue text-white font-semibold transition-all duration-300 hover:bg-[#0C5E78] hover:shadow-md hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:hover:translate-y-0"
+              className="btn-submit"
             >
               {submitting ? "Creating..." : "Create User"}
             </button>

@@ -116,25 +116,28 @@ const MetricsPage = () => {
   return (
     <DashboardLayout>
       <div>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-apolloBlue">Performance Metrics</h1>
-            <p className="text-sm text-[#7A878E] mt-1">
-              View performance trends based on selected date range and download reports.
+        <div className="page-header-row">
+          <div className="page-header-col">
+            <h1 className="page-title">Performance Metrics</h1>
+            <p className="page-subtitle">
+              View performance trends based on selected date range and download
+              reports.
             </p>
           </div>
 
           {user?.role === "super_admin" && (
-            <div className="flex gap-2">
+            <div className="btn-group-sm">
               <button
+                type="button"
                 onClick={() => handleDownload("excel")}
-                className="px-4 py-2 rounded-xl bg-[#0A6F8F] text-white text-sm hover:bg-[#08586F] transition"
+                className="btn-teal"
               >
                 Excel
               </button>
               <button
+                type="button"
                 onClick={() => handleDownload("pdf")}
-                className="px-4 py-2 rounded-xl bg-[#F4B400] text-white text-sm hover:bg-[#D99A00] transition"
+                className="btn-highlight"
               >
                 PDF
               </button>
@@ -142,36 +145,33 @@ const MetricsPage = () => {
           )}
         </div>
 
-        <div className="bg-white rounded-3xl p-6 shadow border border-apolloBorder mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="filter-card-lg">
+          <div className="filter-grid">
             <div>
-              <label className="block text-sm font-medium text-[#6F7C83] mb-2">
-                From Date
-              </label>
+              <label className="form-label-sm">From Date</label>
               <input
                 type="date"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="w-full rounded-xl border border-apolloBorder px-4 py-3 outline-none focus:ring-2 focus:ring-[#BFE5EC]"
+                className="form-input-date"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#6F7C83] mb-2">
-                To Date
-              </label>
+              <label className="form-label-sm">To Date</label>
               <input
                 type="date"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="w-full rounded-xl border border-apolloBorder px-4 py-3 outline-none focus:ring-2 focus:ring-[#BFE5EC]"
+                className="form-input-date"
               />
             </div>
 
             <div>
               <button
+                type="button"
                 onClick={handleApply}
-                className="w-full rounded-xl bg-[#1B7F8B] text-white px-4 py-3 font-medium hover:bg-[#176B75] transition"
+                className="btn-teal-solid"
               >
                 Apply
               </button>
@@ -179,21 +179,17 @@ const MetricsPage = () => {
           </div>
         </div>
 
-        {errorMsg && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {errorMsg}
-          </div>
-        )}
+        {errorMsg && <div className="alert-error">{errorMsg}</div>}
 
-        <div className="bg-white rounded-3xl p-6 shadow border border-apolloBorder">
+        <div className="content-card-xl">
           {loading ? (
-            <p className="text-[#7A878E]">Loading chart...</p>
+            <p className="text-muted">Loading chart...</p>
           ) : chartData.length === 0 ? (
-            <div className="h-[320px] flex items-center justify-center text-[#98A4AA]">
+            <div className="chart-empty">
               No data available for selected range
             </div>
           ) : (
-            <div className="h-[320px]">
+            <div className="chart-container-md">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />

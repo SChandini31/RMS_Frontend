@@ -65,25 +65,18 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-[245px] min-h-screen bg-[#F7F8F8] border-r border-[#DCE3E6] px-5 py-5 flex flex-col">
-      {/* Brand */}
-      <div className="flex items-center gap-3 mb-10">
-        <div className="h-12 w-12 rounded-2xl bg-[#F4B400] hover:bg-[#D99A00] text-white font-semibold shadow-[0_8px_18px_rgba(244,180,0,0.28)] flex items-center justify-center">
+    <aside className="sidebar">
+      <div className="sidebar-brand">
+        <div className="sidebar-logo">
           <GraduationCap size={22} />
         </div>
         <div>
-          <h1 className="text-[18px] font-bold text-[#17313C] leading-none">
-            Apollo RMS
-          </h1>
-          <p className="text-xs text-[#8A959B] mt-1">Research Management</p>
+          <h1 className="sidebar-brand-title">Apollo RMS</h1>
+          <p className="sidebar-brand-subtitle">Research Management</p>
         </div>
       </div>
 
-      {/* Role label */}
-      
-
-      {/* Menu */}
-      <nav className="space-y-2 flex-1">
+      <nav className="sidebar-nav">
         {menuItems.map((item) => {
           const Icon = item.icon;
 
@@ -92,41 +85,27 @@ const Sidebar = () => {
               key={item.name}
               to={item.path}
               className={({ isActive }) =>
-                `group flex items-center gap-3 px-4 py-2.5 rounded-2xl text-[13px] font-medium transition-all ${
-                  isActive
-                    ? "bg-[#E8F5F6] text-[#1B7F8B] shadow-sm"
-                    : "text-[#6F7C83] hover:bg-white hover:text-[#17313C]"
-                }`
+                `nav-link${isActive ? " active" : ""}`
               }
             >
-              {({ isActive }) => (
-                <>
-                  <div
-                    className={`h-8 w-8 rounded-2xl flex items-center justify-center transition ${
-                      isActive
-                        ? "bg-[#45837D] text-white"
-                        : "bg-[#F4F6F7] text-[#8A959B] group-hover:text-[#17313C]"
-                    }`}
-                  >
-                    <Icon size={16} />
-                  </div>
-                  <span>{item.name}</span>
-                </>
-              )}
+              <div className="nav-link-icon">
+                <Icon size={16} />
+              </div>
+              <span>{item.name}</span>
             </NavLink>
           );
         })}
       </nav>
 
-      {/* Bottom action */}
       <button
+        type="button"
         onClick={handleLogout}
-        className="mt-6 flex items-center gap-3 px-4 py-3 rounded-2xl text-[14px] font-medium text-red-500 hover:bg-white transition"
+        className="sidebar-logout"
       >
-        <div className="h-8 w-8 rounded-2xl bg-[#F4F6F7] flex items-center justify-center">
+        <div className="sidebar-logout-icon">
           <LogOut size={16} />
         </div>
-        <span className="text-red-500">Logout</span>
+        <span>Logout</span>
       </button>
     </aside>
   );

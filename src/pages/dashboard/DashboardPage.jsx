@@ -24,6 +24,18 @@ const PIE_COLORS = [
   "#14B8A6",
 ];
 
+const NOTE_COLOR_CLASS = {
+  "text-sky-600": "stat-card-note--sky",
+  "text-emerald-600": "stat-card-note--emerald",
+  "text-amber-600": "stat-card-note--amber",
+};
+
+const RING_COLOR_CLASS = {
+  "from-sky-500/20 to-sky-100": "stat-card-ring--sky",
+  "from-emerald-500/20 to-emerald-100": "stat-card-ring--emerald",
+  "from-amber-500/20 to-amber-100": "stat-card-ring--amber",
+};
+
 const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -281,13 +293,15 @@ const DashboardPage = () => {
       totalPieValue > 0 ? ((data.value / totalPieValue) * 100).toFixed(1) : 0;
 
     return (
-      <div className="rounded-2xl border border-[#E1E7EA] bg-white px-4 py-3 shadow-lg">
-        <p className="text-sm font-semibold text-[#17313C]">{data.name}</p>
-        <p className="mt-1 text-sm text-[#5F6B73]">
-          Count: <span className="font-semibold text-[#17313C]">{data.value}</span>
+      <div className="chart-tooltip">
+        <p className="chart-tooltip-title">{data.name}</p>
+        <p className="chart-tooltip-row">
+          Count:{" "}
+          <span className="chart-tooltip-value">{data.value}</span>
         </p>
-        <p className="text-sm text-[#5F6B73]">
-          Share: <span className="font-semibold text-[#17313C]">{percent}%</span>
+        <p className="chart-tooltip-row">
+          Share:{" "}
+          <span className="chart-tooltip-value">{percent}%</span>
         </p>
       </div>
     );
@@ -315,55 +329,39 @@ const DashboardPage = () => {
   return (
     <DashboardLayout>
       {loading ? (
-        <div className="rounded-3xl border border-[#E1E7EA] bg-white p-6 shadow-sm text-[#7A878E]">
-          Loading dashboard...
-        </div>
+        <div className="loading-state">Loading dashboard...</div>
       ) : errorMsg ? (
-        <div className="rounded-3xl border border-red-200 bg-white p-6 shadow-sm text-red-500">
-          {errorMsg}
-        </div>
+        <div className="error-state">{errorMsg}</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          <div className="grid-stats">
             {cards.map((card) => (
-              <div
-                key={card.title}
-                className="relative overflow-hidden rounded-3xl border border-[#E1E7EA] bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
-              >
+              <div key={card.title} className="stat-card">
                 <div
-                  className={`absolute right-0 top-0 h-24 w-24 rounded-bl-full bg-gradient-to-br ${card.ring}`}
+                  className={`stat-card-ring ${RING_COLOR_CLASS[card.ring] || ""}`}
                 />
-                <p className="relative text-sm text-[#7A878E]">{card.title}</p>
-                <h3 className="relative mt-2 text-3xl font-bold text-[#17313C]">
-                  {card.value}
-                </h3>
-                <p className={`relative mt-2 text-sm font-medium ${card.noteColor}`}>
+                <p className="stat-card-label">{card.title}</p>
+                <h3 className="stat-card-value">{card.value}</h3>
+                <p
+                  className={`stat-card-note ${NOTE_COLOR_CLASS[card.noteColor] || ""}`}
+                >
                   {card.note}
                 </p>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <div className="rounded-3xl border border-[#E1E7EA] bg-white p-6 shadow-sm">
-              <h3 className="text-xl font-bold text-[#17313C]">
-                Recent Publications
-              </h3>
-              <p className="mt-1 text-sm text-[#7A878E]">
-                Latest publication activity
-              </p>
+          <div className="grid-dashboard">
+            <div className="content-card-xl">
+              <h3 className="section-heading">Recent Publications</h3>
+              <p className="page-subtitle">Latest publication activity</p>
 
-              <div className="mt-5 space-y-3">
+              <div className="recent-list">
                 {overview?.recentPublications?.length > 0 ? (
                   overview.recentPublications.map((item) => (
-                    <div
-                      key={item._id}
-                      className="rounded-2xl border border-[#E8ECEF] bg-[#F7F8F8] p-4 transition-all duration-300 hover:border-[#D5E3E8] hover:bg-white"
-                    >
-                      <p className="font-semibold text-[#17313C]">
-                        {item.title}
-                      </p>
-                      <p className="mt-1 text-sm text-[#7A878E]">
+                    <div key={item._id} className="list-item-card">
+                      <p className="cell-primary">{item.title}</p>
+                      <p className="page-subtitle">
                         {(item.school ? `${item.school} • ` : "")}
                         {(item.department ? `${item.department} • ` : "")}
                         {getPublicationStatusText(item)}
@@ -371,22 +369,20 @@ const DashboardPage = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-2xl border border-[#E8ECEF] bg-[#F7F8F8] p-4 text-[#98A4AA]">
-                    No recent publications found
-                  </div>
+                  <div className="empty-state">No recent publications found</div>
                 )}
               </div>
             </div>
 
-            <div className="rounded-3xl border border-[#E1E7EA] bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="content-card-xl">
+              <div className="overview-header">
                 <div>
-                  <h3 className="text-xl font-bold text-[#17313C]">Overview</h3>
-                  <p className="mt-1 text-sm text-[#7A878E]">{chartTitle}</p>
+                  <h3 className="section-heading">Overview</h3>
+                  <p className="page-subtitle">{chartTitle}</p>
                 </div>
 
-                <div className="flex flex-col items-stretch gap-2 sm:items-end">
-                  <div className="rounded-full bg-[#F4F8FA] px-3 py-1 text-xs font-medium text-[#1B7F8B] w-fit">
+                <div className="overview-controls">
+                  <div className="role-pill">
                     {role?.replace("_", " ") || "dashboard"}
                   </div>
 
@@ -394,7 +390,7 @@ const DashboardPage = () => {
                     <select
                       value={selectedSchool}
                       onChange={(e) => setSelectedSchool(e.target.value)}
-                      className="rounded-xl border border-[#D8E2E7] bg-white px-3 py-2 text-sm text-[#17313C] outline-none focus:border-[#1B7F8B]"
+                      className="form-select-sm"
                     >
                       <option value="">All Schools</option>
                       {availableSchools.map((school) => (
@@ -409,7 +405,7 @@ const DashboardPage = () => {
 
               {pieData.length > 0 ? (
                 <>
-                  <div className="mt-6 h-[340px] w-full rounded-3xl bg-gradient-to-br from-[#F9FBFC] to-[#F3F7F9] p-4">
+                  <div className="chart-container">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -442,59 +438,45 @@ const DashboardPage = () => {
                     </ResponsiveContainer>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid-legend">
                     {pieData.map((item, index) => {
                       const percent =
                         totalPieValue > 0
                           ? ((item.value / totalPieValue) * 100).toFixed(1)
                           : 0;
+                      const color = PIE_COLORS[index % PIE_COLORS.length];
 
                       return (
-                        <div
-                          key={`${item.name}-${index}`}
-                          className="rounded-2xl border border-[#E8ECEF] bg-[#F7F8F8] p-4 transition-all duration-300 hover:bg-white"
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="flex min-w-0 items-center gap-3">
+                        <div key={`${item.name}-${index}`} className="legend-item">
+                          <div className="legend-header">
+                            <div className="legend-label">
                               <span
-                                className="h-3 w-3 shrink-0 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    PIE_COLORS[index % PIE_COLORS.length],
-                                }}
+                                className="legend-dot"
+                                style={{ backgroundColor: color }}
                               />
-                              <p className="truncate font-medium text-[#17313C]">
-                                {item.name}
-                              </p>
+                              <p className="legend-name">{item.name}</p>
                             </div>
-                            <span className="text-sm font-semibold text-[#17313C]">
-                              {item.value}
-                            </span>
+                            <span className="legend-count">{item.value}</span>
                           </div>
 
-                          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white">
+                          <div className="legend-bar-track">
                             <div
-                              className="h-full rounded-full transition-all duration-500"
+                              className="legend-bar-fill"
                               style={{
                                 width: `${percent}%`,
-                                backgroundColor:
-                                  PIE_COLORS[index % PIE_COLORS.length],
+                                backgroundColor: color,
                               }}
                             />
                           </div>
 
-                          <p className="mt-2 text-xs font-medium text-[#7A878E]">
-                            {percent}% of total
-                          </p>
+                          <p className="legend-percent">{percent}% of total</p>
                         </div>
                       );
                     })}
                   </div>
                 </>
               ) : (
-                <div className="mt-5 rounded-2xl border border-[#E8ECEF] bg-[#F7F8F8] p-4 text-[#98A4AA]">
-                  No overview data available
-                </div>
+                <div className="empty-state">No overview data available</div>
               )}
             </div>
           </div>

@@ -28,42 +28,42 @@ const PublicationsPage = () => {
   }, []);
 
   const fetchPublications = async () => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await axios.get(`${API_BASE}/api/publications`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      const res = await axios.get(`${API_BASE}/api/publications`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    console.log("Frontend user:", user);
-    console.log("Frontend role:", user?.role);
-    console.log("Raw publications:", res.data);
+      console.log("Frontend user:", user);
+      console.log("Frontend role:", user?.role);
+      console.log("Raw publications:", res.data);
 
-    let filteredData = res.data || [];
+      let filteredData = res.data || [];
 
-    if (user?.role === "student") {
-      filteredData = filteredData.filter(
-        (pub) => pub.uploadedBy?._id === user?._id
-      );
+      if (user?.role === "student") {
+        filteredData = filteredData.filter(
+          (pub) => pub.uploadedBy?._id === user?._id
+        );
+      }
+
+      if (user?.role === "admin") {
+        filteredData = filteredData.filter(
+          (pub) => pub.department === user?.department
+        );
+      }
+
+      console.log("Filtered publications:", filteredData);
+
+      setPublications(filteredData);
+    } catch (error) {
+      console.error("FETCH PUBLICATIONS ERROR:", error);
+    } finally {
+      setLoading(false);
     }
-
-    if (user?.role === "admin") {
-      filteredData = filteredData.filter(
-        (pub) => pub.department === user?.department
-      );
-    }
-
-    console.log("Filtered publications:", filteredData);
-
-    setPublications(filteredData);
-  } catch (error) {
-    console.error("FETCH PUBLICATIONS ERROR:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleStatusChange = async (id, status, rejectionReason = "") => {
     try {
@@ -94,13 +94,9 @@ const PublicationsPage = () => {
   };
 
   const getStatusBadgeClass = (status) => {
-    if (status === "approved") {
-      return "bg-green-100 text-green-700";
-    }
-    if (status === "rejected") {
-      return "bg-red-100 text-red-600";
-    }
-    return "bg-yellow-100 text-yellow-700";
+    if (status === "approved") return "status-badge status-badge--approved";
+    if (status === "rejected") return "status-badge status-badge--rejected";
+    return "status-badge status-badge--pending";
   };
 
   const filterByDate = (data) => {
@@ -135,43 +131,40 @@ const PublicationsPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="text-2xl font-bold text-apolloBlue">Publications</h1>
-          <p className="text-sm text-[#7A878E] mt-1">
+      <div className="page-header">
+        <div className="page-header-col">
+          <h1 className="page-title">Publications</h1>
+          <p className="page-subtitle">
             Manage and review publication records.
           </p>
         </div>
 
         {showAddButton && (
-          <Link
-            to="/publications/add"
-            className="bg-apolloBlue text-white px-4 py-2 rounded-xl"
-          >
+          <Link to="/publications/add" className="btn-primary-sm">
             Add Publication
           </Link>
         )}
       </div>
 
-      <div className="bg-white rounded-2xl p-6 shadow border border-apolloBorder mb-6">
-        <h3 className="text-lg font-semibold text-apolloBlue mb-4">Filter by Date</h3>
-        <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-[#6F7C83] mb-2">From Date</label>
+      <div className="filter-card">
+        <h3 className="section-heading-sm">Filter by Date</h3>
+        <div className="filter-row">
+          <div className="filter-field">
+            <label className="form-label-sm">From Date</label>
             <input
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="px-3 py-2 border border-apolloBorder rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-apolloBlue"
+              className="form-input-sm"
             />
           </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-[#6F7C83] mb-2">To Date</label>
+          <div className="filter-field">
+            <label className="form-label-sm">To Date</label>
             <input
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="px-3 py-2 border border-apolloBorder rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-apolloBlue"
+              className="form-input-sm"
             />
           </div>
           {(fromDate || toDate) && (
@@ -181,7 +174,7 @@ const PublicationsPage = () => {
                 setFromDate("");
                 setToDate("");
               }}
-              className="px-4 py-2 bg-[#E8ECED] text-[#6F7C83] rounded-lg text-sm font-medium hover:bg-[#D8DFDD]"
+              className="btn-clear"
             >
               Clear Dates
             </button>
@@ -189,22 +182,22 @@ const PublicationsPage = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 shadow border border-apolloBorder overflow-x-auto">
+      <div className="content-card table-wrapper">
         {loading ? (
-          <p className="text-[#7A878E]">Loading publications...</p>
+          <p className="text-muted">Loading publications...</p>
         ) : filteredPublications.length === 0 ? (
-          <p className="text-[#98A4AA]">No publications found</p>
+          <p className="text-muted-light">No publications found</p>
         ) : (
-          <table className="w-full min-w-[1050px] text-sm">
+          <table className="data-table">
             <thead>
-              <tr className="text-left text-[#6F7C83] border-b">
-                <th className="py-3 pr-4">Title</th>
-                <th className="pr-4">Department</th>
-                <th className="pr-4">Uploaded By</th>
-                <th className="pr-4">Faculty Status</th>
-                <th className="pr-4">Directorate Status</th>
-                <th className="pr-4">Final Status</th>
-                {showFileColumn && <th className="pr-4">File</th>}
+              <tr>
+                <th>Title</th>
+                <th>Department</th>
+                <th>Uploaded By</th>
+                <th>Faculty Status</th>
+                <th>Directorate Status</th>
+                <th>Final Status</th>
+                {showFileColumn && <th>File</th>}
                 {showActionsColumn && <th>Actions</th>}
               </tr>
             </thead>
@@ -221,82 +214,77 @@ const PublicationsPage = () => {
                   pub.finalStatus === "pending";
 
                 return (
-                  <tr
-                    key={pub._id}
-                    className="border-b hover:bg-[#F7F8F8] align-middle"
-                  >
-                    <td className="py-4 pr-4 font-medium text-[#17313C] whitespace-nowrap">
-                      {pub.title || "Untitled"}
-                    </td>
+                  <tr key={pub._id}>
+                    <td className="cell-primary">{pub.title || "Untitled"}</td>
 
-                    <td className="pr-4 whitespace-nowrap">
-                      {pub.department || "-"}
-                    </td>
+                    <td className="cell-nowrap">{pub.department || "-"}</td>
 
-                    <td className="pr-4 whitespace-nowrap">
+                    <td className="cell-nowrap">
                       {pub.uploadedBy?.name || "-"}
                     </td>
 
-                    <td className="pr-4 whitespace-nowrap">
+                    <td className="cell-nowrap">
                       <span
-                        className={`inline-block px-2 py-1 rounded-lg text-xs font-medium ${getStatusBadgeClass(
+                        className={getStatusBadgeClass(
                           pub.facultyApprovalStatus
-                        )}`}
+                        )}
                       >
                         {pub.facultyApprovalStatus || "pending"}
                       </span>
                     </td>
 
-                    <td className="pr-4 whitespace-nowrap">
+                    <td className="cell-nowrap">
                       <span
-                        className={`inline-block px-2 py-1 rounded-lg text-xs font-medium ${getStatusBadgeClass(
+                        className={getStatusBadgeClass(
                           pub.directorateApprovalStatus
-                        )}`}
+                        )}
                       >
                         {pub.directorateApprovalStatus || "pending"}
                       </span>
                     </td>
 
-                    <td className="pr-4 whitespace-nowrap">
+                    <td className="cell-nowrap">
                       <span
-                        className={`inline-block px-2 py-1 rounded-lg text-xs font-medium ${getStatusBadgeClass(
-                          pub.finalStatus
-                        )}`}
+                        className={getStatusBadgeClass(pub.finalStatus)}
                       >
                         {pub.finalStatus || "pending"}
                       </span>
                     </td>
 
                     {showFileColumn && (
-                      <td className="pr-4 whitespace-nowrap">
+                      <td className="cell-nowrap">
                         {pub.upload ? (
                           <a
                             href={pub.upload}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-[#1B7F8B] underline"
+                            className="text-link"
                           >
                             Download
                           </a>
                         ) : (
-                          <span className="text-[#98A4AA]">No file</span>
+                          <span className="text-muted-light">No file</span>
                         )}
                       </td>
                     )}
 
                     {showActionsColumn && (
-                      <td className="py-4 whitespace-nowrap">
-                        <div className="flex gap-3 items-center">
+                      <td className="cell-nowrap">
+                        <div className="actions-row">
                           {facultyCanAct && (
                             <>
                               <button
-                                onClick={() => handleStatusChange(pub._id, "approved")}
-                                className="text-green-600 text-xs font-medium"
+                                type="button"
+                                onClick={() =>
+                                  handleStatusChange(pub._id, "approved")
+                                }
+                                className="btn-action-approve"
                               >
                                 Approve
                               </button>
 
                               <button
+                                type="button"
                                 onClick={() =>
                                   handleStatusChange(
                                     pub._id,
@@ -304,7 +292,7 @@ const PublicationsPage = () => {
                                     askRejectionReason()
                                   )
                                 }
-                                className="text-red-500 text-xs font-medium"
+                                className="btn-action-reject"
                               >
                                 Reject
                               </button>
@@ -314,13 +302,17 @@ const PublicationsPage = () => {
                           {directorateCanAct && (
                             <>
                               <button
-                                onClick={() => handleStatusChange(pub._id, "approved")}
-                                className="text-green-600 text-xs font-medium"
+                                type="button"
+                                onClick={() =>
+                                  handleStatusChange(pub._id, "approved")
+                                }
+                                className="btn-action-approve"
                               >
                                 Approve
                               </button>
 
                               <button
+                                type="button"
                                 onClick={() =>
                                   handleStatusChange(
                                     pub._id,
@@ -328,7 +320,7 @@ const PublicationsPage = () => {
                                     askRejectionReason()
                                   )
                                 }
-                                className="text-red-500 text-xs font-medium"
+                                className="btn-action-reject"
                               >
                                 Reject
                               </button>
@@ -336,7 +328,7 @@ const PublicationsPage = () => {
                           )}
 
                           {!facultyCanAct && !directorateCanAct && (
-                            <span className="text-[#98A4AA] text-xs">No actions</span>
+                            <span className="cell-muted">No actions</span>
                           )}
                         </div>
                       </td>

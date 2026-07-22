@@ -3,7 +3,6 @@ import DashboardLayout from "../../components/layout/DashboardLayout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-// use local backend while testing
 const API_BASE = "https://rms-897z.onrender.com";
 
 const AddPublicationPage = () => {
@@ -63,21 +62,18 @@ const AddPublicationPage = () => {
 
       const data = new FormData();
 
-      // add normal fields safely
       Object.entries(form).forEach(([key, value]) => {
         if (value !== "" && value !== null && value !== undefined) {
           data.append(key, value);
         }
       });
 
-      // remove completely empty authors
       const cleanedAuthors = authors.filter(
         (author) => author.name.trim() || author.author_type.trim()
       );
 
       data.append("authors", JSON.stringify(cleanedAuthors));
 
-      // send plain comma-separated strings
       if (form.keywords.trim()) {
         data.append("keywords", form.keywords.trim());
       }
@@ -86,7 +82,6 @@ const AddPublicationPage = () => {
         data.append("affiliation", form.affiliation.trim());
       }
 
-      // issue should be number only if entered
       if (form.issue !== "") {
         data.set("issue", Number(form.issue));
       }
@@ -118,95 +113,90 @@ const AddPublicationPage = () => {
     }
   };
 
-  const inputClass =
-    "w-full rounded-2xl border border-[#DCE3E6] bg-white px-4 py-3 text-sm text-[#17313C] outline-none transition focus:border-[#35B8D6] focus:ring-4 focus:ring-[#DDF4F8] placeholder:text-[#9AA7AE]";
-
-  const labelClass = "block text-sm font-semibold text-[#4E5D66] mb-2";
-
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto">
+      <div className="container-lg">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-apolloBlue">Add Publication</h1>
-          <p className="text-sm text-[#7A878E] mt-1">
+          <h1 className="page-title">Add Publication</h1>
+          <p className="page-subtitle">
             Fill in the publication details and upload the related file.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="bg-white rounded-3xl border border-[#E1E7EA] shadow-sm p-6">
-            <h2 className="text-lg font-bold text-[#17313C] mb-5">Basic Info *</h2>
+          <section className="form-section">
+            <h2 className="section-heading">Basic Info *</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            <div className="form-grid-4">
               <div>
-                <label className={labelClass}>Title *</label>
+                <label className="form-label">Title *</label>
                 <input
                   name="title"
                   value={form.title}
                   onChange={handleChange}
                   placeholder="Enter publication title"
                   required
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Department *</label>
+                <label className="form-label">Department *</label>
                 <input
                   name="department"
                   value={form.department}
                   onChange={handleChange}
                   placeholder="Enter department"
                   required
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Publication Type *</label>
+                <label className="form-label">Publication Type *</label>
                 <input
                   name="publication_type"
                   value={form.publication_type}
                   onChange={handleChange}
                   placeholder="Journal / Conference / Book"
                   required
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Institution / Organization</label>
+                <label className="form-label">Institution / Organization</label>
                 <input
                   name="institution_organization"
                   value={form.institution_organization}
                   onChange={handleChange}
                   placeholder="Enter institution"
                   required
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className={labelClass}>School</label>
+              <div className="span-2">
+                <label className="form-label">School</label>
                 <input
                   name="school"
                   value={form.school}
                   onChange={handleChange}
                   placeholder="Enter school"
                   required
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
             </div>
           </section>
 
-          <section className="bg-white rounded-3xl border border-[#E1E7EA] shadow-sm p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-[#17313C]">Authors *</h2>
+          <section className="form-section">
+            <div className="form-section-header">
+              <h2 className="section-heading">Authors *</h2>
               <button
                 type="button"
                 onClick={addAuthor}
-                className="px-4 py-2 rounded-xl bg-[#E8F5F6] text-[#1B7F8B] text-sm font-medium hover:bg-[#DDF1F3]"
+                className="btn-add-soft"
               >
                 + Add Author
               </button>
@@ -214,38 +204,35 @@ const AddPublicationPage = () => {
 
             <div className="space-y-4">
               {authors.map((author, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr_auto] gap-4 items-end p-4 rounded-2xl border border-[#EDF1F3] bg-[#FAFBFB]"
-                >
+                <div key={index} className="form-grid-authors">
                   <div>
-                    <label className={labelClass}>Author Name</label>
+                    <label className="form-label">Author Name</label>
                     <input
                       value={author.name}
                       onChange={(e) =>
                         handleAuthorChange(index, "name", e.target.value)
                       }
                       placeholder="Enter author name"
-                      className={inputClass}
+                      className="form-input"
                     />
                   </div>
 
                   <div>
-                    <label className={labelClass}>Author Type</label>
+                    <label className="form-label">Author Type</label>
                     <input
                       value={author.author_type}
                       onChange={(e) =>
                         handleAuthorChange(index, "author_type", e.target.value)
                       }
                       placeholder="First / Co-author"
-                      className={inputClass}
+                      className="form-input"
                     />
                   </div>
 
                   <button
                     type="button"
                     onClick={() => removeAuthor(index)}
-                    className="h-[50px] px-4 rounded-2xl border border-red-200 text-red-500 hover:bg-red-50"
+                    className="btn-remove"
                   >
                     Remove
                   </button>
@@ -254,202 +241,202 @@ const AddPublicationPage = () => {
             </div>
           </section>
 
-          <section className="bg-white rounded-3xl border border-[#E1E7EA] shadow-sm p-6">
-            <h2 className="text-lg font-bold text-[#17313C] mb-5">Publication Details</h2>
+          <section className="form-section">
+            <h2 className="section-heading">Publication Details</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            <div className="form-grid-4">
               <div>
-                <label className={labelClass}>Journal Name *</label>
+                <label className="form-label">Journal Name *</label>
                 <input
                   name="journal_name"
                   value={form.journal_name}
                   onChange={handleChange}
                   placeholder="Enter journal name"
                   required
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>ISSN</label>
+                <label className="form-label">ISSN</label>
                 <input
                   name="issn"
                   value={form.issn}
                   onChange={handleChange}
                   placeholder="Enter ISSN"
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>DOI</label>
+                <label className="form-label">DOI</label>
                 <input
                   name="DOI"
                   value={form.DOI}
                   onChange={handleChange}
                   placeholder="Enter DOI"
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Volume</label>
+                <label className="form-label">Volume</label>
                 <input
                   name="volume"
                   value={form.volume}
                   onChange={handleChange}
                   placeholder="Enter volume"
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Issue</label>
+                <label className="form-label">Issue</label>
                 <input
                   type="number"
                   name="issue"
                   value={form.issue}
                   onChange={handleChange}
                   placeholder="Enter issue"
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>POI URL</label>
+                <label className="form-label">POI URL</label>
                 <input
                   name="poi_url"
                   value={form.poi_url}
                   onChange={handleChange}
                   placeholder="Enter POI URL"
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Date of Publication</label>
+                <label className="form-label">Date of Publication</label>
                 <input
                   type="date"
                   name="date_of_publication"
                   value={form.date_of_publication}
                   onChange={handleChange}
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Index</label>
+                <label className="form-label">Index</label>
                 <input
                   name="index"
                   value={form.index}
                   onChange={handleChange}
                   placeholder="Enter index"
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
             </div>
           </section>
 
-          <section className="bg-white rounded-3xl border border-[#E1E7EA] shadow-sm p-6">
-            <h2 className="text-lg font-bold text-[#17313C] mb-5">Abstract & Keywords *</h2>
+          <section className="form-section">
+            <h2 className="section-heading">Abstract & Keywords *</h2>
 
-            <div className="grid grid-cols-1 gap-5">
+            <div className="space-y-4">
               <div>
-                <label className={labelClass}>Abstract</label>
+                <label className="form-label">Abstract</label>
                 <textarea
                   name="abstract"
                   value={form.abstract}
                   onChange={handleChange}
                   placeholder="Enter abstract (max 350 words)"
-                  className={`${inputClass} min-h-[140px] resize-none`}
+                  className="form-input form-textarea"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Keywords</label>
+                <label className="form-label">Keywords</label>
                 <input
                   name="keywords"
                   value={form.keywords}
                   onChange={handleChange}
                   placeholder="Enter keywords separated by commas"
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
             </div>
           </section>
 
-          <section className="bg-white rounded-3xl border border-[#E1E7EA] shadow-sm p-6">
-            <h2 className="text-lg font-bold text-[#17313C] mb-5">Additional Info</h2>
+          <section className="form-section">
+            <h2 className="section-heading">Additional Info</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div className="form-grid-4">
               <div>
-                <label className={labelClass}>Affiliation</label>
+                <label className="form-label">Affiliation</label>
                 <input
                   name="affiliation"
                   value={form.affiliation}
                   onChange={handleChange}
                   placeholder="Comma separated affiliations"
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Scopus ID</label>
+                <label className="form-label">Scopus ID</label>
                 <input
                   name="scopus_id"
                   value={form.scopus_id}
                   onChange={handleChange}
                   placeholder="Enter Scopus ID"
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Funding Source</label>
+                <label className="form-label">Funding Source</label>
                 <input
                   name="funding_source"
                   value={form.funding_source}
                   onChange={handleChange}
                   placeholder="Enter funding source"
-                  className={inputClass}
+                  className="form-input"
                 />
               </div>
 
-              <div className="md:col-span-2 xl:col-span-3">
-                <label className={labelClass}>Additional Notes</label>
+              <div className="span-2">
+                <label className="form-label">Additional Notes</label>
                 <textarea
                   name="additional_notes"
                   value={form.additional_notes}
                   onChange={handleChange}
                   placeholder="Enter any additional notes"
-                  className={`${inputClass} min-h-[110px] resize-none`}
+                  className="form-input form-textarea-sm"
                 />
               </div>
             </div>
           </section>
 
-          <section className="bg-white rounded-3xl border border-[#E1E7EA] shadow-sm p-6">
-            <h2 className="text-lg font-bold text-[#17313C] mb-5">Upload File *</h2>
+          <section className="form-section">
+            <h2 className="section-heading">Upload File *</h2>
 
-            <div className="rounded-2xl border border-dashed border-[#C9D6DD] bg-[#F8FBFC] p-5">
-              <label className={labelClass}>Upload File</label>
+            <div className="upload-zone">
+              <label className="form-label">Upload File</label>
               <input
                 type="file"
                 required
                 onChange={(e) => setFile(e.target.files[0])}
-                className="block w-full text-sm text-[#4E5D66]"
+                className="file-input"
               />
-              <p className="text-xs text-[#8A959B] mt-2">
+              <p className="upload-hint">
                 Upload the publication file in PDF or supported format.
               </p>
             </div>
           </section>
 
-          <div className="flex justify-end">
+          <div className="btn-group-end">
             <button
               type="submit"
               disabled={submitting}
-              className="px-8 py-3 rounded-2xl bg-apolloBlue text-white font-semibold hover:bg-[#0C5E78] transition disabled:opacity-70"
+              className="btn-submit"
             >
               {submitting ? "Submitting..." : "Submit Publication"}
             </button>

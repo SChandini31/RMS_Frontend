@@ -10,19 +10,17 @@ const DashboardLayout = ({ children }) => {
   const showTopbar = location.pathname === "/dashboard";
 
   return (
-    <div className="h-screen flex overflow-hidden bg-[#F3F5F6]">
+    <div className="dashboard-shell">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-  {showTopbar && (
-    <div className="sticky top-0 z-20">
-      <Topbar />
-    </div>
-  )}
-  <main className="flex-1 overflow-y-auto p-6">
-    {children}
-  </main>
-</div>
+      <div className="dashboard-main">
+        {showTopbar && (
+          <div className="dashboard-topbar-sticky">
+            <Topbar />
+          </div>
+        )}
+        <main className="dashboard-content">{children}</main>
+      </div>
     </div>
   );
 };

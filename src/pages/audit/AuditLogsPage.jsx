@@ -13,6 +13,23 @@ import {
 
 const API_BASE = "https://rms-897z.onrender.com";
 
+const RING_CLASS = {
+  blue: "audit-stat-ring--blue",
+  green: "audit-stat-ring--green",
+  purple: "audit-stat-ring--purple",
+  orange: "audit-stat-ring--orange",
+};
+
+const StatCard = ({ title, value, color }) => (
+  <div className="audit-stat-card">
+    <div className={`audit-stat-ring ${RING_CLASS[color] || ""}`} />
+    <div className="relative">
+      <p className="audit-stat-label">{title}</p>
+      <h2 className="audit-stat-value">{value}</h2>
+    </div>
+  </div>
+);
+
 const AuditLogsPage = () => {
   const token = localStorage.getItem("token");
 
@@ -37,9 +54,6 @@ const AuditLogsPage = () => {
   });
 
   const [loading, setLoading] = useState(false);
-
-  const inputClass =
-    "h-11 rounded-xl border border-[#DCE3E6] bg-white px-4 text-sm text-[#17313C] outline-none transition focus:border-[#35B8D6] focus:ring-2 focus:ring-[#DDF4F8]";
 
   const fetchDropdowns = async () => {
     try {
@@ -160,50 +174,17 @@ const AuditLogsPage = () => {
     [stats]
   );
 
-  const StatCard = ({ title, value, color }) => {
-  const colorStyles = {
-    blue: "from-blue-500/20 to-blue-100 text-blue-600",
-    green: "from-green-500/20 to-green-100 text-green-600",
-    purple: "from-purple-500/20 to-purple-100 text-purple-600",
-    orange: "from-orange-500/20 to-orange-100 text-orange-600",
-  };
-
-  return (
-    <div
-      className={`relative overflow-hidden rounded-2xl p-5 border border-[#E5EAF0] bg-white 
-      shadow-sm transition-all duration-300 
-      hover:-translate-y-1 hover:shadow-md hover:scale-[1.03]`}
-    >
-      {/* Gradient glow */}
-      <div
-        className={`absolute top-0 right-0 w-20 h-20 rounded-bl-full bg-gradient-to-br ${colorStyles[color]}`}
-      />
-
-      {/* Content */}
-      <div className="relative">
-        <p className="text-sm text-gray-500">{title}</p>
-
-        <h2 className="mt-2 text-3xl font-bold text-[#17313C]">
-          {value}
-        </h2>
-      </div>
-    </div>
-  );
-};
-
   return (
     <DashboardLayout>
       <div className="space-y-3">
-        {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-apolloBlue">Audit Logs</h1>
-          <p className="text-sm text-[#7A878E] mt-1">
+          <h1 className="page-title">Audit Logs</h1>
+          <p className="page-subtitle">
             Monitor system activities with filters, statistics, and exports.
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 ">
+        <div className="grid-stats-audit">
           <StatCard title="Total Logs" value={stats.totalLogs || 0} color="blue" />
           <StatCard title="User Actions" value={stats.userActions || 0} color="green" />
           <StatCard
@@ -218,11 +199,10 @@ const AuditLogsPage = () => {
           />
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-2xl border border-[#E1E7EA] shadow-sm p-4">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="content-card panel-sm">
+          <div className="filter-bar">
             <select
-              className={`${inputClass} min-w-[12rem] flex-1`}
+              className="form-input-filter"
               value={filters.school}
               onChange={(e) =>
                 setFilters({ ...filters, school: e.target.value })
@@ -237,7 +217,7 @@ const AuditLogsPage = () => {
             </select>
 
             <select
-              className={`${inputClass} min-w-[12rem] flex-1`}
+              className="form-input-filter"
               value={filters.department}
               onChange={(e) =>
                 setFilters({ ...filters, department: e.target.value })
@@ -253,7 +233,7 @@ const AuditLogsPage = () => {
 
             <input
               type="date"
-              className={`${inputClass} min-w-[12rem] flex-1`}
+              className="form-input-filter"
               value={filters.from}
               onChange={(e) =>
                 setFilters({ ...filters, from: e.target.value })
@@ -262,43 +242,31 @@ const AuditLogsPage = () => {
 
             <input
               type="date"
-              className={`${inputClass} min-w-[12rem] flex-1`}
+              className="form-input-filter"
               value={filters.to}
               onChange={(e) =>
                 setFilters({ ...filters, to: e.target.value })
               }
             />
 
-            <button
-              onClick={applyFilters}
-              className="h-11 w-full sm:w-auto rounded-xl bg-apolloBlue text-white px-5 text-sm font-medium hover:bg-[#0C5E78] transition"
-            >
+            <button type="button" onClick={applyFilters} className="btn-filter">
               Apply
             </button>
 
-            <button
-              onClick={resetFilters}
-              className="h-11 w-full sm:w-auto rounded-xl border border-[#DCE3E6] px-5 text-sm font-medium text-[#4E5D66] hover:bg-[#F8FAFB] transition"
-            >
+            <button type="button" onClick={resetFilters} className="btn-reset">
               Reset
             </button>
 
-            <button
-              onClick={downloadExcel}
-              className="h-11 w-full sm:w-auto rounded-xl bg-green-600 text-white px-4 text-sm font-medium hover:bg-green-700 transition"
-            >
+            <button type="button" onClick={downloadExcel} className="btn-excel">
               Excel
             </button>
           </div>
         </div>
 
-        {/* Chart */}
-        <div className="bg-white rounded-2xl border border-[#E1E7EA] shadow-sm p-6">
-          <h2 className="text-lg font-bold text-[#17313C] mb-4">
-            Audit Activity Overview
-          </h2>
+        <div className="content-card">
+          <h2 className="section-heading">Audit Activity Overview</h2>
 
-          <div className="h-[260px]">
+          <div className="chart-container-sm">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -311,59 +279,48 @@ const AuditLogsPage = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-2xl border border-[#E1E7EA] shadow-sm p-6 overflow-x-auto">
+        <div className="content-card table-wrapper">
           {loading ? (
-            <p className="text-[#7A878E]">Loading audit logs...</p>
+            <p className="text-muted">Loading audit logs...</p>
           ) : logs.length === 0 ? (
-            <p className="text-[#7A878E]">No audit logs found</p>
+            <p className="text-muted">No audit logs found</p>
           ) : (
-            <table className="w-full min-w-[1150px] text-sm">
+            <table className="data-table data-table--wide">
               <thead>
-                <tr className="text-left border-b text-[#6F7C83]">
-                  <th className="py-3 pr-4">Date</th>
-                  <th className="pr-4">Action</th>
-                  <th className="pr-4">User</th>
-                  <th className="pr-4">Role</th>
-                  <th className="pr-4">School</th>
-                  <th className="pr-4">Department</th>
-                  <th className="pr-4">Type</th>
+                <tr>
+                  <th>Date</th>
+                  <th>Action</th>
+                  <th>User</th>
+                  <th>Role</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Type</th>
                   <th>Details</th>
                 </tr>
               </thead>
 
               <tbody>
                 {logs.map((log) => (
-                  <tr key={log._id} className="border-b hover:bg-[#F8FAFB] align-top">
-                    <td className="py-4 pr-4 whitespace-nowrap text-[#4E5D66]">
+                  <tr key={log._id}>
+                    <td className="cell-nowrap" style={{ color: "#4E5D66" }}>
                       {new Date(log.createdAt).toLocaleString()}
                     </td>
 
-                    <td className="pr-4 whitespace-nowrap font-medium text-[#17313C]">
-                      {log.action || "-"}
-                    </td>
+                    <td className="cell-primary">{log.action || "-"}</td>
 
-                    <td className="pr-4 whitespace-nowrap">
+                    <td className="cell-nowrap">
                       {log.performedBy?.name || "-"}
                     </td>
 
-                    <td className="pr-4 whitespace-nowrap">
-                      {log.role || "-"}
-                    </td>
+                    <td className="cell-nowrap">{log.role || "-"}</td>
 
-                    <td className="pr-4 whitespace-nowrap">
-                      {log.school || "-"}
-                    </td>
+                    <td className="cell-nowrap">{log.school || "-"}</td>
 
-                    <td className="pr-4 whitespace-nowrap">
-                      {log.department || "-"}
-                    </td>
+                    <td className="cell-nowrap">{log.department || "-"}</td>
 
-                    <td className="pr-4 whitespace-nowrap">
-                      {log.targetType || "-"}
-                    </td>
+                    <td className="cell-nowrap">{log.targetType || "-"}</td>
 
-                    <td className="max-w-[340px] text-[#4E5D66]">
+                    <td className="cell-detail">
                       <span className="line-clamp-2">{log.details || "-"}</span>
                     </td>
                   </tr>
@@ -374,26 +331,6 @@ const AuditLogsPage = () => {
         </div>
       </div>
     </DashboardLayout>
-  );
-};
-
-const StatCard = ({ title, value, color }) => {
-  const colorMap = {
-    blue: "text-blue-700 bg-blue-50",
-    green: "text-green-700 bg-green-50",
-    purple: "text-purple-700 bg-purple-50",
-    orange: "text-orange-700 bg-orange-50",
-  };
-
-  return (
-    <div className="bg-white rounded-3xl border border-[#E1E7EA] shadow-sm p-5">
-      <p className="text-sm text-[#7A878E]">{title}</p>
-      <div
-        className={`inline-flex mt-3 rounded-2xl px-4 py-2 ${colorMap[color]}`}
-      >
-        <span className="text-3xl font-bold">{value}</span>
-      </div>
-    </div>
   );
 };
 
