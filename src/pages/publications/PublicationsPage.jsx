@@ -23,6 +23,9 @@ const PublicationsPage = () => {
   const showFileColumn = isSuperAdmin || isFaculty || isDirectorate;
   const showActionsColumn = isFaculty || isDirectorate;
 
+  // =========================
+  // FETCH PUBLICATIONS
+  // =========================
   useEffect(() => {
     fetchPublications();
   }, []);
@@ -41,14 +44,25 @@ const PublicationsPage = () => {
       console.log("Frontend role:", user?.role);
       console.log("Raw publications:", res.data);
 
-      let filteredData = res.data || [];
+      // Backend response:
+      // {
+      //   success: true,
+      //   count: 12,
+      //   publications: [...]
+      // }
 
+      let filteredData = Array.isArray(res.data?.publications)
+        ? res.data.publications
+        : [];
+
+      // Student can see only their own publications
       if (user?.role === "student") {
         filteredData = filteredData.filter(
           (pub) => pub.uploadedBy?._id === user?._id
         );
       }
 
+      // Admin can see publications from their department
       if (user?.role === "admin") {
         filteredData = filteredData.filter(
           (pub) => pub.department === user?.department
@@ -60,16 +74,28 @@ const PublicationsPage = () => {
       setPublications(filteredData);
     } catch (error) {
       console.error("FETCH PUBLICATIONS ERROR:", error);
+
+      setPublications([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusChange = async (id, status, rejectionReason = "") => {
+  // =========================
+  // STATUS UPDATE
+  // =========================
+  const handleStatusChange = async (
+    id,
+    status,
+    rejectionReason = ""
+  ) => {
     try {
       await axios.put(
         `${API_BASE}/api/publications/${id}/status`,
-        { status, rejectionReason },
+        {
+          status,
+          rejectionReason,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -80,6 +106,7 @@ const PublicationsPage = () => {
       fetchPublications();
     } catch (error) {
       console.error("STATUS UPDATE ERROR:", error);
+
       alert(
         error.response?.data?.message ||
           error.response?.data?.error ||
@@ -88,39 +115,86 @@ const PublicationsPage = () => {
     }
   };
 
+  // =========================
+  // REJECTION REASON
+  // =========================
   const askRejectionReason = () => {
     const reason = window.prompt("Enter rejection reason:");
+
     return reason || "";
   };
 
+  // =========================
+  // STATUS BADGE
+  // =========================
   const getStatusBadgeClass = (status) => {
-    if (status === "approved") return "status-badge status-badge--approved";
-    if (status === "rejected") return "status-badge status-badge--rejected";
+    if (status === "approved") {
+      return "status-badge status-badge--approved";
+    }
+
+    if (status === "rejected") {
+      return "status-badge status-badge--rejected";
+    }
+
     return "status-badge status-badge--pending";
   };
 
+  // =========================
+  // DATE FILTER
+  // =========================
   const filterByDate = (data) => {
-    if (!fromDate && !toDate) return data;
+    // Safety check
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    // No date filter
+    if (!fromDate && !toDate) {
+      return data;
+    }
 
     return data.filter((pub) => {
+      /*
+       * OLD PUBLICATION STRUCTURE:
+       * pub.date_of_publication
+       *
+       * NEW PUBLICATION STRUCTURE:
+       * pub.type_details.publication_date
+       *
+       * Fallback:
+       * pub.createdAt
+       */
+
       const pubDate = pub.date_of_publication
         ? new Date(pub.date_of_publication)
+        : pub.type_details?.publication_date
+        ? new Date(pub.type_details.publication_date)
         : pub.createdAt
         ? new Date(pub.createdAt)
         : null;
 
-      if (!pubDate) return false;
+      if (!pubDate || isNaN(pubDate.getTime())) {
+        return false;
+      }
 
+      // From date
       if (fromDate) {
         const start = new Date(fromDate);
         start.setHours(0, 0, 0, 0);
-        if (pubDate < start) return false;
+
+        if (pubDate < start) {
+          return false;
+        }
       }
 
+      // To date
       if (toDate) {
         const end = new Date(toDate);
         end.setHours(23, 59, 59, 999);
-        if (pubDate > end) return false;
+
+        if (pubDate > end) {
+          return false;
+        }
       }
 
       return true;
@@ -129,28 +203,43 @@ const PublicationsPage = () => {
 
   const filteredPublications = filterByDate(publications);
 
+  // =========================
+  // JSX
+  // =========================
   return (
     <DashboardLayout>
+      {/* ================= HEADER ================= */}
       <div className="page-header">
         <div className="page-header-col">
           <h1 className="page-title">Publications</h1>
+
           <p className="page-subtitle">
             Manage and review publication records.
           </p>
         </div>
 
         {showAddButton && (
-          <Link to="/publications/add" className="btn-primary-sm">
+          <Link
+            to="/publications/add"
+            className="btn-primary-sm"
+          >
             Add Publication
           </Link>
         )}
       </div>
 
+      {/* ================= DATE FILTER ================= */}
       <div className="filter-card">
-        <h3 className="section-heading-sm">Filter by Date</h3>
+        <h3 className="section-heading-sm">
+          Filter by Date
+        </h3>
+
         <div className="filter-row">
           <div className="filter-field">
-            <label className="form-label-sm">From Date</label>
+            <label className="form-label-sm">
+              From Date
+            </label>
+
             <input
               type="date"
               value={fromDate}
@@ -158,8 +247,12 @@ const PublicationsPage = () => {
               className="form-input-sm"
             />
           </div>
+
           <div className="filter-field">
-            <label className="form-label-sm">To Date</label>
+            <label className="form-label-sm">
+              To Date
+            </label>
+
             <input
               type="date"
               value={toDate}
@@ -167,6 +260,7 @@ const PublicationsPage = () => {
               className="form-input-sm"
             />
           </div>
+
           {(fromDate || toDate) && (
             <button
               type="button"
@@ -182,31 +276,46 @@ const PublicationsPage = () => {
         </div>
       </div>
 
+      {/* ================= PUBLICATIONS TABLE ================= */}
       <div className="content-card table-wrapper">
         {loading ? (
-          <p className="text-muted">Loading publications...</p>
+          <p className="text-muted">
+            Loading publications...
+          </p>
         ) : filteredPublications.length === 0 ? (
-          <p className="text-muted-light">No publications found</p>
+          <p className="text-muted-light">
+            No publications found
+          </p>
         ) : (
           <table className="data-table">
             <thead>
               <tr>
                 <th>Title</th>
+
                 <th>Department</th>
+
                 <th>Uploaded By</th>
+
                 <th>Faculty Status</th>
+
                 <th>Directorate Status</th>
+
                 <th>Final Status</th>
+
                 {showFileColumn && <th>File</th>}
+
                 {showActionsColumn && <th>Actions</th>}
               </tr>
             </thead>
 
             <tbody>
               {filteredPublications.map((pub) => {
+                // Faculty approval permission
                 const facultyCanAct =
-                  isFaculty && pub.facultyApprovalStatus === "pending";
+                  isFaculty &&
+                  pub.facultyApprovalStatus === "pending";
 
+                // Directorate approval permission
                 const directorateCanAct =
                   isDirectorate &&
                   pub.facultyApprovalStatus === "approved" &&
@@ -215,14 +324,22 @@ const PublicationsPage = () => {
 
                 return (
                   <tr key={pub._id}>
-                    <td className="cell-primary">{pub.title || "Untitled"}</td>
+                    {/* TITLE */}
+                    <td className="cell-primary">
+                      {pub.title || "Untitled"}
+                    </td>
 
-                    <td className="cell-nowrap">{pub.department || "-"}</td>
+                    {/* DEPARTMENT */}
+                    <td className="cell-nowrap">
+                      {pub.department || "-"}
+                    </td>
 
+                    {/* UPLOADED BY */}
                     <td className="cell-nowrap">
                       {pub.uploadedBy?.name || "-"}
                     </td>
 
+                    {/* FACULTY STATUS */}
                     <td className="cell-nowrap">
                       <span
                         className={getStatusBadgeClass(
@@ -233,6 +350,7 @@ const PublicationsPage = () => {
                       </span>
                     </td>
 
+                    {/* DIRECTORATE STATUS */}
                     <td className="cell-nowrap">
                       <span
                         className={getStatusBadgeClass(
@@ -243,14 +361,18 @@ const PublicationsPage = () => {
                       </span>
                     </td>
 
+                    {/* FINAL STATUS */}
                     <td className="cell-nowrap">
                       <span
-                        className={getStatusBadgeClass(pub.finalStatus)}
+                        className={getStatusBadgeClass(
+                          pub.finalStatus
+                        )}
                       >
                         {pub.finalStatus || "pending"}
                       </span>
                     </td>
 
+                    {/* FILE */}
                     {showFileColumn && (
                       <td className="cell-nowrap">
                         {pub.upload ? (
@@ -263,20 +385,27 @@ const PublicationsPage = () => {
                             Download
                           </a>
                         ) : (
-                          <span className="text-muted-light">No file</span>
+                          <span className="text-muted-light">
+                            No file
+                          </span>
                         )}
                       </td>
                     )}
 
+                    {/* ACTIONS */}
                     {showActionsColumn && (
                       <td className="cell-nowrap">
                         <div className="actions-row">
+                          {/* FACULTY ACTIONS */}
                           {facultyCanAct && (
                             <>
                               <button
                                 type="button"
                                 onClick={() =>
-                                  handleStatusChange(pub._id, "approved")
+                                  handleStatusChange(
+                                    pub._id,
+                                    "approved"
+                                  )
                                 }
                                 className="btn-action-approve"
                               >
@@ -299,12 +428,16 @@ const PublicationsPage = () => {
                             </>
                           )}
 
+                          {/* DIRECTORATE ACTIONS */}
                           {directorateCanAct && (
                             <>
                               <button
                                 type="button"
                                 onClick={() =>
-                                  handleStatusChange(pub._id, "approved")
+                                  handleStatusChange(
+                                    pub._id,
+                                    "approved"
+                                  )
                                 }
                                 className="btn-action-approve"
                               >
@@ -327,9 +460,13 @@ const PublicationsPage = () => {
                             </>
                           )}
 
-                          {!facultyCanAct && !directorateCanAct && (
-                            <span className="cell-muted">No actions</span>
-                          )}
+                          {/* NO ACTION */}
+                          {!facultyCanAct &&
+                            !directorateCanAct && (
+                              <span className="cell-muted">
+                                No actions
+                              </span>
+                            )}
                         </div>
                       </td>
                     )}
