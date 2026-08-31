@@ -54,6 +54,15 @@ const AuditLogsPage = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 10,
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
 
   const fetchDropdowns = async () => {
     try {
@@ -72,7 +81,7 @@ const AuditLogsPage = () => {
     }
   };
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (pageToUse = currentPage) => {
     try {
       setLoading(true);
 
@@ -80,12 +89,42 @@ const AuditLogsPage = () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        params: filters,
+        params: {
+          ...filters,
+          page: pageToUse,
+          limit: 10,
+        },
       });
 
-      setLogs(res.data || []);
+      const responseData = res.data || {};
+      const resultLogs = Array.isArray(responseData.logs)
+        ? responseData.logs
+        : Array.isArray(responseData)
+        ? responseData
+        : [];
+
+      setLogs(resultLogs);
+      setPagination(
+        responseData.pagination || {
+          currentPage: pageToUse,
+          pageSize: 10,
+          totalItems: resultLogs.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPreviousPage: pageToUse > 1,
+        }
+      );
     } catch (err) {
       console.error("LOG FETCH ERROR:", err);
+      setLogs([]);
+      setPagination({
+        currentPage: 1,
+        pageSize: 10,
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
     } finally {
       setLoading(false);
     }
@@ -108,12 +147,20 @@ const AuditLogsPage = () => {
 
   useEffect(() => {
     fetchDropdowns();
-    fetchLogs();
+    fetchLogs(currentPage);
     fetchStats();
   }, []);
 
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= pagination.totalPages && page !== currentPage) {
+      setCurrentPage(page);
+      fetchLogs(page);
+    }
+  };
+
   const applyFilters = () => {
-    fetchLogs();
+    setCurrentPage(1);
+    fetchLogs(1);
     fetchStats();
   };
 
@@ -126,9 +173,10 @@ const AuditLogsPage = () => {
     };
 
     setFilters(reset);
+    setCurrentPage(1);
 
     setTimeout(() => {
-      fetchLogs();
+      fetchLogs(1);
       fetchStats();
     }, 0);
   };
@@ -329,6 +377,49 @@ const AuditLogsPage = () => {
             </table>
           )}
         </div>
+
+        {pagination.totalPages > 1 && (
+          <div className="pagination-container">
+            <div className="pagination-info">
+              Showing {((pagination.currentPage - 1) * pagination.pageSize) + 1} - {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems} logs
+            </div>
+
+            <div className="pagination-controls">
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!pagination.hasPreviousPage}
+                className="pagination-nav-btn"
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: pagination.totalPages }, (_, index) => index + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => handlePageChange(page)}
+                  className={
+                    page === currentPage
+                      ? "pagination-page-btn pagination-page-btn--active"
+                      : "pagination-page-btn"
+                  }
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!pagination.hasNextPage}
+                className="pagination-nav-btn"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

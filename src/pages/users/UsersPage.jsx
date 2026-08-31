@@ -14,8 +14,17 @@ const UsersPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 10,
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (pageToUse = currentPage) => {
     try {
       setLoading(true);
 
@@ -23,10 +32,30 @@ const UsersPage = () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: {
+          page: pageToUse,
+          limit: 10,
+        },
       });
 
-      console.log("Users response:", res.data);
-      setUsers(res.data || []);
+      const responseData = res.data || {};
+      const responseUsers = Array.isArray(responseData.users)
+        ? responseData.users
+        : Array.isArray(responseData)
+        ? responseData
+        : [];
+
+      setUsers(responseUsers);
+      setPagination(
+        responseData.pagination || {
+          currentPage: pageToUse,
+          pageSize: 10,
+          totalItems: responseUsers.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPreviousPage: pageToUse > 1,
+        }
+      );
     } catch (error) {
       console.error("FETCH USERS ERROR:", error);
       alert(
@@ -34,13 +63,22 @@ const UsersPage = () => {
           error.response?.data?.error ||
           "Failed to load users"
       );
+      setUsers([]);
+      setPagination({
+        currentPage: 1,
+        pageSize: 10,
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(currentPage);
   }, []);
 
   const handleDelete = async (id) => {
@@ -54,7 +92,7 @@ const UsersPage = () => {
         },
       });
 
-      fetchUsers();
+      fetchUsers(currentPage);
     } catch (error) {
       console.error("DELETE USER ERROR:", error);
       alert(
@@ -62,6 +100,13 @@ const UsersPage = () => {
           error.response?.data?.error ||
           "Failed to delete user"
       );
+    }
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= pagination.totalPages && page !== currentPage) {
+      setCurrentPage(page);
+      fetchUsers(page);
     }
   };
 
@@ -189,6 +234,49 @@ const UsersPage = () => {
           </table>
         )}
       </div>
+
+      {pagination.totalPages > 1 && (
+        <div className="pagination-container">
+          <div className="pagination-info">
+            Showing {((pagination.currentPage - 1) * pagination.pageSize) + 1} - {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems} users
+          </div>
+
+          <div className="pagination-controls">
+            <button
+              type="button"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!pagination.hasPreviousPage}
+              className="pagination-nav-btn"
+            >
+              Previous
+            </button>
+
+            {Array.from({ length: pagination.totalPages }, (_, index) => index + 1).map((page) => (
+              <button
+                key={page}
+                type="button"
+                onClick={() => handlePageChange(page)}
+                className={
+                  page === currentPage
+                    ? "pagination-page-btn pagination-page-btn--active"
+                    : "pagination-page-btn"
+                }
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!pagination.hasNextPage}
+              className="pagination-nav-btn"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };

@@ -11,6 +11,20 @@ const PublicationsPage = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
+  // =========================
+  // PAGINATION
+  // =========================
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 10,
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
+
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
 
@@ -28,13 +42,17 @@ const PublicationsPage = () => {
   // =========================
   useEffect(() => {
     fetchPublications();
-  }, []);
+  }, [currentPage]);
 
   const fetchPublications = async () => {
     try {
       setLoading(true);
 
       const res = await axios.get(`${API_BASE}/api/publications`, {
+        params: {
+          page: currentPage,
+          limit: 10,
+        },
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -47,35 +65,65 @@ const PublicationsPage = () => {
       // Backend response:
       // {
       //   success: true,
-      //   count: 12,
-      //   publications: [...]
+      //   count: 10,
+      //   publications: [...],
+      //   pagination: {
+      //     currentPage: 1,
+      //     pageSize: 10,
+      //     totalItems: 25,
+      //     totalPages: 3,
+      //     hasNextPage: true,
+      //     hasPreviousPage: false
+      //   }
       // }
 
-      let filteredData = Array.isArray(res.data?.publications)
+      const publicationData = Array.isArray(
+        res.data?.publications
+      )
         ? res.data.publications
         : [];
 
-      // Student can see only their own publications
-      if (user?.role === "student") {
-        filteredData = filteredData.filter(
-          (pub) => pub.uploadedBy?._id === user?._id
-        );
+      console.log(
+        "Publications for current page:",
+        publicationData
+      );
+
+      setPublications(publicationData);
+
+      // =========================
+      // PAGINATION DATA
+      // =========================
+
+      if (res.data?.pagination) {
+        setPagination(res.data.pagination);
+      } else {
+        setPagination({
+          currentPage: currentPage,
+          pageSize: 10,
+          totalItems: publicationData.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPreviousPage: currentPage > 1,
+        });
       }
 
-      // Admin can see publications from their department
-      if (user?.role === "admin") {
-        filteredData = filteredData.filter(
-          (pub) => pub.department === user?.department
-        );
-      }
-
-      console.log("Filtered publications:", filteredData);
-
-      setPublications(filteredData);
     } catch (error) {
-      console.error("FETCH PUBLICATIONS ERROR:", error);
+      console.error(
+        "FETCH PUBLICATIONS ERROR:",
+        error
+      );
 
       setPublications([]);
+
+      setPagination({
+        currentPage: 1,
+        pageSize: 10,
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
+
     } finally {
       setLoading(false);
     }
@@ -104,8 +152,12 @@ const PublicationsPage = () => {
       );
 
       fetchPublications();
+
     } catch (error) {
-      console.error("STATUS UPDATE ERROR:", error);
+      console.error(
+        "STATUS UPDATE ERROR:",
+        error
+      );
 
       alert(
         error.response?.data?.message ||
@@ -119,7 +171,9 @@ const PublicationsPage = () => {
   // REJECTION REASON
   // =========================
   const askRejectionReason = () => {
-    const reason = window.prompt("Enter rejection reason:");
+    const reason = window.prompt(
+      "Enter rejection reason:"
+    );
 
     return reason || "";
   };
@@ -201,7 +255,34 @@ const PublicationsPage = () => {
     });
   };
 
-  const filteredPublications = filterByDate(publications);
+  const filteredPublications =
+    filterByDate(publications);
+
+  // =========================
+  // PAGINATION HANDLERS
+  // =========================
+
+  const handlePreviousPage = () => {
+    if (pagination.hasPreviousPage) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (pagination.hasNextPage) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const handlePageChange = (page) => {
+    if (
+      page >= 1 &&
+      page <= pagination.totalPages &&
+      page !== currentPage
+    ) {
+      setCurrentPage(page);
+    }
+  };
 
   // =========================
   // JSX
@@ -243,7 +324,9 @@ const PublicationsPage = () => {
             <input
               type="date"
               value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
+              onChange={(e) =>
+                setFromDate(e.target.value)
+              }
               className="form-input-sm"
             />
           </div>
@@ -256,7 +339,9 @@ const PublicationsPage = () => {
             <input
               type="date"
               value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
+              onChange={(e) =>
+                setToDate(e.target.value)
+              }
               className="form-input-sm"
             />
           </div>
@@ -287,196 +372,269 @@ const PublicationsPage = () => {
             No publications found
           </p>
         ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Title</th>
+          <>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
 
-                <th>Department</th>
+                  <th>Department</th>
 
-                <th>Uploaded By</th>
+                  <th>Uploaded By</th>
 
-                <th>Faculty Status</th>
+                  <th>Faculty Status</th>
 
-                <th>Directorate Status</th>
+                  <th>Directorate Status</th>
 
-                <th>Final Status</th>
+                  <th>Final Status</th>
 
-                {showFileColumn && <th>File</th>}
+                  {showFileColumn && <th>File</th>}
 
-                {showActionsColumn && <th>Actions</th>}
-              </tr>
-            </thead>
+                  {showActionsColumn && <th>Actions</th>}
+                </tr>
+              </thead>
 
-            <tbody>
-              {filteredPublications.map((pub) => {
-                // Faculty approval permission
-                const facultyCanAct =
-                  isFaculty &&
-                  pub.facultyApprovalStatus === "pending";
+              <tbody>
+                {filteredPublications.map((pub) => {
+                  // Faculty approval permission
+                  const facultyCanAct =
+                    isFaculty &&
+                    pub.facultyApprovalStatus ===
+                      "pending";
 
-                // Directorate approval permission
-                const directorateCanAct =
-                  isDirectorate &&
-                  pub.facultyApprovalStatus === "approved" &&
-                  pub.directorateApprovalStatus === "pending" &&
-                  pub.finalStatus === "pending";
+                  // Directorate approval permission
+                  const directorateCanAct =
+                    isDirectorate &&
+                    pub.facultyApprovalStatus ===
+                      "approved" &&
+                    pub.directorateApprovalStatus ===
+                      "pending" &&
+                    pub.finalStatus ===
+                      "pending";
 
-                return (
-                  <tr key={pub._id}>
-                    {/* TITLE */}
-                    <td className="cell-primary">
-                      {pub.title || "Untitled"}
-                    </td>
-
-                    {/* DEPARTMENT */}
-                    <td className="cell-nowrap">
-                      {pub.department || "-"}
-                    </td>
-
-                    {/* UPLOADED BY */}
-                    <td className="cell-nowrap">
-                      {pub.uploadedBy?.name || "-"}
-                    </td>
-
-                    {/* FACULTY STATUS */}
-                    <td className="cell-nowrap">
-                      <span
-                        className={getStatusBadgeClass(
-                          pub.facultyApprovalStatus
-                        )}
-                      >
-                        {pub.facultyApprovalStatus || "pending"}
-                      </span>
-                    </td>
-
-                    {/* DIRECTORATE STATUS */}
-                    <td className="cell-nowrap">
-                      <span
-                        className={getStatusBadgeClass(
-                          pub.directorateApprovalStatus
-                        )}
-                      >
-                        {pub.directorateApprovalStatus || "pending"}
-                      </span>
-                    </td>
-
-                    {/* FINAL STATUS */}
-                    <td className="cell-nowrap">
-                      <span
-                        className={getStatusBadgeClass(
-                          pub.finalStatus
-                        )}
-                      >
-                        {pub.finalStatus || "pending"}
-                      </span>
-                    </td>
-
-                    {/* FILE */}
-                    {showFileColumn && (
-                      <td className="cell-nowrap">
-                        {pub.upload ? (
-                          <a
-                            href={pub.upload}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-link"
-                          >
-                            Download
-                          </a>
-                        ) : (
-                          <span className="text-muted-light">
-                            No file
-                          </span>
-                        )}
+                  return (
+                    <tr key={pub._id}>
+                      {/* TITLE */}
+                      <td className="cell-primary">
+                        {pub.title || "Untitled"}
                       </td>
-                    )}
 
-                    {/* ACTIONS */}
-                    {showActionsColumn && (
+                      {/* DEPARTMENT */}
                       <td className="cell-nowrap">
-                        <div className="actions-row">
-                          {/* FACULTY ACTIONS */}
-                          {facultyCanAct && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleStatusChange(
-                                    pub._id,
-                                    "approved"
-                                  )
-                                }
-                                className="btn-action-approve"
-                              >
-                                Approve
-                              </button>
+                        {pub.department || "-"}
+                      </td>
 
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleStatusChange(
-                                    pub._id,
-                                    "rejected",
-                                    askRejectionReason()
-                                  )
-                                }
-                                className="btn-action-reject"
-                              >
-                                Reject
-                              </button>
-                            </>
+                      {/* UPLOADED BY */}
+                      <td className="cell-nowrap">
+                        {pub.uploadedBy?.name || "-"}
+                      </td>
+
+                      {/* FACULTY STATUS */}
+                      <td className="cell-nowrap">
+                        <span
+                          className={getStatusBadgeClass(
+                            pub.facultyApprovalStatus
                           )}
+                        >
+                          {pub.facultyApprovalStatus ||
+                            "pending"}
+                        </span>
+                      </td>
 
-                          {/* DIRECTORATE ACTIONS */}
-                          {directorateCanAct && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleStatusChange(
-                                    pub._id,
-                                    "approved"
-                                  )
-                                }
-                                className="btn-action-approve"
-                              >
-                                Approve
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleStatusChange(
-                                    pub._id,
-                                    "rejected",
-                                    askRejectionReason()
-                                  )
-                                }
-                                className="btn-action-reject"
-                              >
-                                Reject
-                              </button>
-                            </>
+                      {/* DIRECTORATE STATUS */}
+                      <td className="cell-nowrap">
+                        <span
+                          className={getStatusBadgeClass(
+                            pub.directorateApprovalStatus
                           )}
+                        >
+                          {pub.directorateApprovalStatus ||
+                            "pending"}
+                        </span>
+                      </td>
 
-                          {/* NO ACTION */}
-                          {!facultyCanAct &&
-                            !directorateCanAct && (
-                              <span className="cell-muted">
-                                No actions
-                              </span>
+                      {/* FINAL STATUS */}
+                      <td className="cell-nowrap">
+                        <span
+                          className={getStatusBadgeClass(
+                            pub.finalStatus
+                          )}
+                        >
+                          {pub.finalStatus ||
+                            "pending"}
+                        </span>
+                      </td>
+
+                      {/* FILE */}
+                      {showFileColumn && (
+                        <td className="cell-nowrap">
+                          {pub.upload ? (
+                            <a
+                              href={pub.upload}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-link"
+                            >
+                              Download
+                            </a>
+                          ) : (
+                            <span className="text-muted-light">
+                              No file
+                            </span>
+                          )}
+                        </td>
+                      )}
+
+                      {/* ACTIONS */}
+                      {showActionsColumn && (
+                        <td className="cell-nowrap">
+                          <div className="actions-row">
+                            {/* FACULTY ACTIONS */}
+                            {facultyCanAct && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleStatusChange(
+                                      pub._id,
+                                      "approved"
+                                    )
+                                  }
+                                  className="btn-action-approve"
+                                >
+                                  Approve
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleStatusChange(
+                                      pub._id,
+                                      "rejected",
+                                      askRejectionReason()
+                                    )
+                                  }
+                                  className="btn-action-reject"
+                                >
+                                  Reject
+                                </button>
+                              </>
                             )}
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+
+                            {/* DIRECTORATE ACTIONS */}
+                            {directorateCanAct && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleStatusChange(
+                                      pub._id,
+                                      "approved"
+                                    )
+                                  }
+                                  className="btn-action-approve"
+                                >
+                                  Approve
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleStatusChange(
+                                      pub._id,
+                                      "rejected",
+                                      askRejectionReason()
+                                    )
+                                  }
+                                  className="btn-action-reject"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+
+                            {/* NO ACTION */}
+                            {!facultyCanAct &&
+                              !directorateCanAct && (
+                                <span className="cell-muted">
+                                  No actions
+                                </span>
+                              )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+          </>
         )}
       </div>
+
+      {/* ================= PAGINATION ================= */}
+      {pagination.totalPages > 1 && (
+        <div className="pagination-container">
+          <div className="pagination-info">
+            Showing{" "}
+            {(
+              (pagination.currentPage - 1) *
+                pagination.pageSize +
+              1
+            )}{" "}
+            -{" "}
+            {Math.min(
+              pagination.currentPage *
+                pagination.pageSize,
+              pagination.totalItems
+            )}{" "}
+            of{" "}
+            {pagination.totalItems}{" "}
+            publications
+          </div>
+
+          <div className="pagination-controls">
+            <button
+              type="button"
+              onClick={handlePreviousPage}
+              disabled={!pagination.hasPreviousPage}
+              className="pagination-nav-btn"
+            >
+              Previous
+            </button>
+
+            {Array.from(
+              {
+                length: pagination.totalPages,
+              },
+              (_, index) => index + 1
+            ).map((page) => (
+              <button
+                key={page}
+                type="button"
+                onClick={() => handlePageChange(page)}
+                className={
+                  page === currentPage
+                    ? "pagination-page-btn pagination-page-btn--active"
+                    : "pagination-page-btn"
+                }
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={handleNextPage}
+              disabled={!pagination.hasNextPage}
+              className="pagination-nav-btn"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };
