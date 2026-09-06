@@ -9,6 +9,10 @@ const API_BASE = "https://rms-897z.onrender.com";
 const UsersPage = () => {
   const token = localStorage.getItem("token");
   const currentUser = JSON.parse(localStorage.getItem("user"));
+  const currentUserRoles = Array.isArray(currentUser?.role)
+    ? currentUser.role
+    : [currentUser?.role];
+  const isSuperAdmin = currentUserRoles.includes("super_admin");
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +86,7 @@ const UsersPage = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    if (currentUser?.role !== "super_admin") return;
+    if (!isSuperAdmin) return;
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
@@ -119,10 +123,14 @@ const UsersPage = () => {
       return (
         user.name?.toLowerCase().includes(search) ||
         user.email?.toLowerCase().includes(search) ||
-        user.role?.toLowerCase().includes(search) ||
+        (Array.isArray(user.role)
+          ? user.role.join(" ")
+          : user.role
+        )?.toLowerCase().includes(search) ||
         user.department?.toLowerCase().includes(search) ||
         user.school?.toLowerCase().includes(search) ||
-        user.contact_number?.toLowerCase().includes(search)
+        user.organization_institution?.toLowerCase().includes(search) ||
+        String(user.contact_number || "").includes(search)
       );
     });
   }, [users, searchTerm]);
@@ -133,7 +141,7 @@ const UsersPage = () => {
         <div className="page-header-col">
           <h1 className="page-title">Users</h1>
           <p className="page-subtitle">
-            {currentUser?.role === "super_admin"
+            {isSuperAdmin
               ? "Manage all RMS users"
               : "Department-wise users overview"}
           </p>
@@ -161,7 +169,7 @@ const UsersPage = () => {
             </div>
           </div>
 
-          {currentUser?.role === "super_admin" && (
+          {isSuperAdmin && (
             <Link to="/users/add" className="btn-primary-sm">
               Add User
             </Link>
@@ -192,6 +200,7 @@ const UsersPage = () => {
                 <th>Role</th>
                 <th>Department</th>
                 <th>School</th>
+                <th>Organization / Institution</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
@@ -206,17 +215,24 @@ const UsersPage = () => {
                     {user.contact_number || "-"}
                   </td>
                   <td className="cell-capitalize">
-                    {user.role?.replace("_", " ") || "-"}
+                    {Array.isArray(user.role)
+                      ? user.role
+                          .map((role) => role.replaceAll("_", " "))
+                          .join(", ")
+                      : user.role?.replaceAll("_", " ") || "-"}
                   </td>
                   <td className="cell-nowrap">{user.department || "-"}</td>
                   <td className="cell-nowrap">{user.school || "-"}</td>
+                  <td className="cell-nowrap">
+                    {user.organization_institution || "-"}
+                  </td>
                   <td className="cell-nowrap">
                     {user.createdAt
                       ? new Date(user.createdAt).toLocaleDateString()
                       : "-"}
                   </td>
                   <td className="cell-nowrap">
-                    {currentUser?.role === "super_admin" ? (
+                    {isSuperAdmin ? (
                       <button
                         type="button"
                         onClick={() => handleDelete(user._id)}

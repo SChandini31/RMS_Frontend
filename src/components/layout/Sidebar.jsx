@@ -50,7 +50,7 @@ const roleMenus = {
   ],
 };
 
-const Sidebar = () => {
+const Sidebar = ({ collapsed, setCollapsed }) => {
   const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -64,17 +64,21 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${collapsed ? " sidebar-collapsed" : ""}`}>
       <div className="sidebar-brand">
-        <div className="sidebar-logo-wrapper">
+        <button
+          type="button"
+          className="sidebar-logo-wrapper"
+          onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
           <img
             src="/image.png"
             alt="Apollo University"
             className="sidebar-logo-image"
           />
-        </div>
-        <div className="sidebar-brand-text">
-        </div>
+        </button>
       </div>
 
       <nav className="sidebar-nav">
@@ -92,7 +96,7 @@ const Sidebar = () => {
               <div className="nav-link-icon">
                 <Icon size={16} />
               </div>
-              <span>{item.name}</span>
+              <span className="sidebar-label">{item.name}</span>
             </NavLink>
           );
         })}
@@ -106,7 +110,7 @@ const Sidebar = () => {
         <div className="sidebar-logout-icon">
           <LogOut size={16} />
         </div>
-        <span>Logout</span>
+        <span className="sidebar-label">Logout</span>
       </button>
     </aside>
   );

@@ -1,11 +1,17 @@
 import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
 const DashboardLayout = ({ children }) => {
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("sidebar-collapsed") === "true",
+  );
+
+  useEffect(() => {
+    localStorage.setItem("sidebar-collapsed", String(collapsed));
+  }, [collapsed]);
 
   const showTopbar = location.pathname === "/dashboard";
 

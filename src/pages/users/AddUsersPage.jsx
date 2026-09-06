@@ -18,6 +18,15 @@ const schools = [
   "School of Social Science",
 ];
 
+const roles = [
+  { value: "super_admin", label: "Super Admin" },
+  { value: "admin", label: "Admin" },
+  { value: "faculty", label: "Faculty" },
+  { value: "student", label: "Student" },
+  { value: "directorate", label: "Directorate" },
+  { value: "special_user", label: "Special User" },
+];
+
 const AddUsersPage = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -27,10 +36,11 @@ const AddUsersPage = () => {
     name: "",
     email: "",
     password: "",
-    role: "",
+    role: [],
     department: "",
     school: "",
     contact_number: "",
+    organization_institution: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -48,6 +58,17 @@ const AddUsersPage = () => {
     }));
   };
 
+  const handleRoleChange = (e) => {
+    const { value, checked } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      role: checked
+        ? [...prev.role, value]
+        : prev.role.filter((role) => role !== value),
+    }));
+  };
+
   // ============================================================
   // HANDLE SUBMIT
   // ============================================================
@@ -55,8 +76,22 @@ const AddUsersPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (currentUser?.role !== "super_admin") {
+    const currentUserRoles = Array.isArray(currentUser?.role)
+      ? currentUser.role
+      : [currentUser?.role];
+
+    if (!currentUserRoles.includes("super_admin")) {
       alert("Only super admin can add users");
+      return;
+    }
+
+    if (form.role.length === 0) {
+      alert("Select at least one role");
+      return;
+    }
+
+    if (!form.organization_institution.trim()) {
+      alert("Enter an organization or institution");
       return;
     }
 
@@ -67,10 +102,11 @@ const AddUsersPage = () => {
         ...form,
         name: form.name.trim(),
         email: form.email.trim(),
-        role: form.role.trim(),
+        role: form.role,
         department: form.department.trim(),
         school: form.school.trim(),
-        contact_number: form.contact_number.trim(),
+        contact_number: Number(form.contact_number),
+        organization_institution: form.organization_institution.trim(),
       };
 
       const res = await axios.post(`${API_BASE}/api/users`, payload, {
@@ -176,6 +212,8 @@ const AddUsersPage = () => {
 
               <input
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 name="contact_number"
                 value={form.contact_number}
                 onChange={handleChange}
@@ -185,46 +223,51 @@ const AddUsersPage = () => {
               />
             </div>
 
+            <div>
+              <label className="form-label">Organization / Institution *</label>
+
+              <input
+                type="text"
+                name="organization_institution"
+                value={form.organization_institution}
+                onChange={handleChange}
+                required
+                placeholder="Enter organization or institution"
+                className="form-input"
+              />
+            </div>
+
             {/* =====================================================
                 ROLE
             ====================================================== */}
 
-            <div>
-              <label className="form-label">Role *</label>
+            <div className="role-field">
+              <span className="form-label">Role *</span>
 
-              <select
-                name="role"
-                value={form.role}
-                onChange={handleChange}
+              <div className="role-checkbox-group">
+                {roles.map((role) => (
+                  <label key={role.value} className="role-checkbox-label">
+                    <input
+                      type="checkbox"
+                      name="role"
+                      value={role.value}
+                      checked={form.role.includes(role.value)}
+                      onChange={handleRoleChange}
+                    />
+                    <span>{role.label}</span>
+                  </label>
+                ))}
+              </div>
+
+              <input
+                type="text"
+                value={form.role.length ? form.role.join(", ") : ""}
                 required
-                className="form-input"
-              >
-                <option value="">Select role</option>
-
-                <option value="super_admin">
-                  Super Admin
-                </option>
-
-                <option value="admin">
-                  Admin
-                </option>
-
-                <option value="faculty">
-                  Faculty
-                </option>
-
-                <option value="student">
-                  Student
-                </option>
-
-                <option value="directorate">
-                  Directorate
-                </option>
-
-                <option value="special_user">
-                  Special User
-                </option>
-              </select>
+                tabIndex={-1}
+                aria-hidden="true"
+                className="role-validation-input"
+                onChange={() => {}}
+              />
             </div>
 
             {/* =====================================================

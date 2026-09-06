@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   BarChart3,
   FileText,
+  ChevronDown,
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -20,6 +21,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [availableRoles, setAvailableRoles] = useState([]);
+  const [selectedRole, setSelectedRole] = useState("");
 
   const API_BASE = "https://rms-897z.onrender.com";
 
@@ -34,7 +37,17 @@ export default function LoginPage() {
     setErrorMsg("");
 
     try {
-      const res = await axios.post(`${API_BASE}/api/auth/login`, formData);
+      const loginPayload = selectedRole
+        ? { ...formData, selectedRole }
+        : formData;
+      const res = await axios.post(`${API_BASE}/api/auth/login`, loginPayload);
+
+      if (res.data?.requiresRoleSelection) {
+        setAvailableRoles(res.data.roles || []);
+        setSelectedRole(res.data.roles?.[0] || "");
+        setErrorMsg("Select a role to continue");
+        return;
+      }
 
       if (!res.data?.token || !res.data?.user) {
         setErrorMsg("Invalid login response from server");
@@ -122,6 +135,36 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              {availableRoles.length > 0 && (
+                <div>
+                  <label className="login-label" htmlFor="selectedRole">
+                    SELECT ROLE
+                  </label>
+                  <div className="login-select-wrap">
+                    <select
+                      id="selectedRole"
+                      name="selectedRole"
+                      value={selectedRole}
+                      onChange={(e) => {
+                        setSelectedRole(e.target.value);
+                        setErrorMsg("");
+                      }}
+                      className="login-input login-role-select"
+                      required
+                    >
+                      {availableRoles.map((role) => (
+                        <option key={role} value={role}>
+                          {role
+                            .replaceAll("_", " ")
+                            .replace(/\b\w/g, (letter) => letter.toUpperCase())}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={17} className="login-select-icon" />
+                  </div>
+                </div>
+              )}
+
               {errorMsg && <div className="alert-error">{errorMsg}</div>}
 
               <button
@@ -129,7 +172,11 @@ export default function LoginPage() {
                 disabled={loading}
                 className="login-submit"
               >
-                {loading ? "Signing in..." : "Sign In to Dashboard"}
+                {loading
+                  ? "Signing in..."
+                  : availableRoles.length > 0
+                  ? "Continue with selected role"
+                  : "Sign In to Dashboard"}
               </button>
             </form>
 
