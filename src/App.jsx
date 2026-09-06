@@ -4,6 +4,7 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import UsersPage from "./pages/users/UsersPage";
 import PublicationsPage from "./pages/publications/PublicationsPage";
 import AuditLogsPage from "./pages/audit/AuditLogsPage";
+import AuditLogsListPage from "./pages/audit/AuditLogsListPage";
 import MetricsPage from "./pages/metrics/MetricsPage";
 import AddPublicationPage from "./pages/publications/AddPublicationPage";
 import JournalPublicationPage from "./pages/publications/JournalPublicationPage";
@@ -27,6 +28,7 @@ function App() {
         <Route path="/users" element={<UsersPage />} />
         <Route path="/publications" element={<PublicationsPage />} />
         <Route path="/audit-logs" element={<AuditLogsPage />} />
+        <Route path="/audit-logs/logs" element={<AuditLogsListPage />} />
         <Route path="/metrics" element={<MetricsPage />} />
         <Route path="/publications/add" element={<AddPublicationPage />} />
         <Route path="/publications/add/journal" element={<JournalPublicationPage />} />

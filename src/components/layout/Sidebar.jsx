@@ -5,7 +5,6 @@ import {
   ShieldCheck,
   BarChart3,
   LogOut,
-  GraduationCap,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -67,12 +66,14 @@ const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="sidebar-logo">
-          <GraduationCap size={22} />
+        <div className="sidebar-logo-wrapper">
+          <img
+            src="/image.png"
+            alt="Apollo University"
+            className="sidebar-logo-image"
+          />
         </div>
-        <div>
-          <h1 className="sidebar-brand-title">Apollo RMS</h1>
-          <p className="sidebar-brand-subtitle">Research Management</p>
+        <div className="sidebar-brand-text">
         </div>
       </div>
 

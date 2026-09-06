@@ -5,6 +5,19 @@ import { useNavigate } from "react-router-dom";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
+// ============================================================
+// SCHOOLS
+// These must match the schools configured in RMS
+// ============================================================
+
+const schools = [
+  "School of Technology",
+  "School of Management",
+  "Apollo Institute of Pharmaceutical Sciences",
+  "School of Health Sciences",
+  "School of Social Science",
+];
+
 const AddUsersPage = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -22,13 +35,22 @@ const AddUsersPage = () => {
 
   const [submitting, setSubmitting] = useState(false);
 
+  // ============================================================
+  // HANDLE INPUT CHANGE
+  // ============================================================
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
+
+  // ============================================================
+  // HANDLE SUBMIT
+  // ============================================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,9 +80,11 @@ const AddUsersPage = () => {
       });
 
       alert(res.data?.message || "✅ User created successfully");
+
       navigate("/users");
     } catch (error) {
       console.error("ADD USER ERROR:", error);
+
       alert(
         error.response?.data?.message ||
           error.response?.data?.error ||
@@ -71,18 +95,31 @@ const AddUsersPage = () => {
     }
   };
 
+  // ============================================================
+  // UI
+  // ============================================================
+
   return (
     <DashboardLayout>
       <div className="container-sm">
         <div className="mb-6">
           <h1 className="page-title">Add User</h1>
-          <p className="page-subtitle">Create a new RMS user account.</p>
+
+          <p className="page-subtitle">
+            Create a new RMS user account.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="form-card form-stack">
           <div className="form-grid-2">
+
+            {/* =====================================================
+                NAME
+            ====================================================== */}
+
             <div>
               <label className="form-label">Name *</label>
+
               <input
                 type="text"
                 name="name"
@@ -94,8 +131,13 @@ const AddUsersPage = () => {
               />
             </div>
 
+            {/* =====================================================
+                EMAIL
+            ====================================================== */}
+
             <div>
               <label className="form-label">Email *</label>
+
               <input
                 type="email"
                 name="email"
@@ -107,8 +149,13 @@ const AddUsersPage = () => {
               />
             </div>
 
+            {/* =====================================================
+                PASSWORD
+            ====================================================== */}
+
             <div>
               <label className="form-label">Password *</label>
+
               <input
                 type="text"
                 name="password"
@@ -120,8 +167,13 @@ const AddUsersPage = () => {
               />
             </div>
 
+            {/* =====================================================
+                CONTACT NUMBER
+            ====================================================== */}
+
             <div>
               <label className="form-label">Contact Number *</label>
+
               <input
                 type="text"
                 name="contact_number"
@@ -133,8 +185,13 @@ const AddUsersPage = () => {
               />
             </div>
 
+            {/* =====================================================
+                ROLE
+            ====================================================== */}
+
             <div>
               <label className="form-label">Role *</label>
+
               <select
                 name="role"
                 value={form.role}
@@ -143,17 +200,40 @@ const AddUsersPage = () => {
                 className="form-input"
               >
                 <option value="">Select role</option>
-                <option value="super_admin">Super Admin</option>
-                <option value="admin">Admin</option>
-                <option value="faculty">Faculty</option>
-                <option value="student">Student</option>
-                <option value="directorate">Directorate</option>
-                <option value="special_user">Special User</option>
+
+                <option value="super_admin">
+                  Super Admin
+                </option>
+
+                <option value="admin">
+                  Admin
+                </option>
+
+                <option value="faculty">
+                  Faculty
+                </option>
+
+                <option value="student">
+                  Student
+                </option>
+
+                <option value="directorate">
+                  Directorate
+                </option>
+
+                <option value="special_user">
+                  Special User
+                </option>
               </select>
             </div>
 
+            {/* =====================================================
+                DEPARTMENT
+            ====================================================== */}
+
             <div>
               <label className="form-label">Department *</label>
+
               <input
                 type="text"
                 name="department"
@@ -165,19 +245,34 @@ const AddUsersPage = () => {
               />
             </div>
 
+            {/* =====================================================
+                SCHOOL DROPDOWN
+            ====================================================== */}
+
             <div>
               <label className="form-label">School *</label>
-              <input
-                type="text"
+
+              <select
                 name="school"
                 value={form.school}
                 onChange={handleChange}
                 required
-                placeholder="Enter school"
                 className="form-input"
-              />
+              >
+                <option value="">Select school</option>
+
+                {schools.map((school) => (
+                  <option key={school} value={school}>
+                    {school}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
+
+          {/* =====================================================
+              BUTTONS
+          ====================================================== */}
 
           <div className="btn-group-end">
             <button

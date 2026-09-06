@@ -4,7 +4,6 @@ import axios from "axios";
 import {
   Mail,
   Lock,
-  GraduationCap,
   ShieldCheck,
   BarChart3,
   FileText,
@@ -60,14 +59,13 @@ export default function LoginPage() {
           <div className="login-form-inner">
             <div className="mb-8">
               <div className="login-brand">
-                <div className="login-logo">
-                  <GraduationCap size={20} />
-                </div>
-                <div>
-                  <h1 className="login-brand-title">The Apollo University</h1>
-                  <p className="login-brand-subtitle">
-                    Research Management System
-                  </p>
+                <img
+                  src="/image.png"
+                  alt="Apollo University"
+                  className="login-logo-image"
+                />
+                <div className="login-brand-text">
+                  <p className="login-brand-subtitle">Research Management System</p>
                 </div>
               </div>
 
