@@ -28,10 +28,12 @@ const PublicationsPage = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
 
-  const isSuperAdmin = user?.role === "super_admin";
-  const isFaculty = user?.role === "faculty";
-  const isDirectorate = user?.role === "directorate";
-  const isStudent = user?.role === "student";
+  const role = user?.activeRole || user?.role?.[0];
+
+  const isSuperAdmin = role === "super_admin";
+  const isFaculty = role === "faculty";
+  const isDirectorate = role === "directorate";
+  const isStudent = role === "student";
 
   const showAddButton = isSuperAdmin || isFaculty || isStudent;
   const showFileColumn = isSuperAdmin || isFaculty || isDirectorate;
