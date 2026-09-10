@@ -275,7 +275,7 @@ const AddUsersPage = () => {
             ====================================================== */}
 
             <div>
-              <label className="form-label">Department *</label>
+              <label className="form-label">Department / Programme *</label>
 
               <input
                 type="text"

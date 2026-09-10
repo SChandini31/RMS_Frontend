@@ -9,6 +9,8 @@ import {
   FileText,
   ChevronDown,
 } from "lucide-react";
+import { useNotification } from "../../context/NotificationContext";
+import { getFriendlyError } from "../../utils/notifyError";
 
 export default function LoginPage() {
   const navigate = useNavigate();

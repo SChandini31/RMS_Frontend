@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route} from "react-router-dom";
+import { NotificationProvider } from "./context/NotificationContext";
 import LoginPage from "./pages/auth/LoginPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import UsersPage from "./pages/users/UsersPage";
@@ -21,6 +22,7 @@ import ResearchSupportPublicationPage from "./pages/publications/ResearchSupport
 
 function App() {
   return (
+    <NotificationProvider>
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
@@ -43,6 +45,7 @@ function App() {
         <Route path="/users/add" element={<AddUsersPage />} />
       </Routes>
     </Router>
+    </NotificationProvider>
   );
 }
 

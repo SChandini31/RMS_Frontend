@@ -5,6 +5,10 @@ import { PUBLICATION_TYPES } from "../../config/publicationTypes";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
+// ============================================================
+// PUBLICATION TYPE OPTIONS
+// ============================================================
+
 const exportTypeOptions = [
   { value: "all", label: "All Publications" },
   ...PUBLICATION_TYPES.map((type) => ({
@@ -13,10 +17,34 @@ const exportTypeOptions = [
   })),
 ];
 
+// ============================================================
+// EXPORT STATUS OPTIONS
+// ============================================================
+
+const exportStatusOptions = [
+  {
+    value: "all",
+    label: "All Statuses",
+  },
+  {
+    value: "approved",
+    label: "Approved",
+  },
+  {
+    value: "not_approved",
+    label: "Not Approved",
+  },
+];
+
+// ============================================================
+// FORMAT DATE
+// ============================================================
+
 const formatReportDate = (date) => {
   if (!date) return "";
 
   const [year, month, day] = date.split("-");
+
   return `${day}-${month}-${year}`;
 };
 
@@ -25,8 +53,18 @@ const formatReportDate = (date) => {
 // ============================================================
 
 const MetricsPage = () => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("token");
+
+  // ==========================================================
+  // USER
+  // ==========================================================
+
+  const user = JSON.parse(
+    localStorage.getItem("user")
+  );
+
+  const token =
+    localStorage.getItem("token");
+
 
   // ==========================================================
   // DEFAULT DATES
@@ -67,14 +105,40 @@ const MetricsPage = () => {
   const [downloading, setDownloading] =
     useState(false);
 
+
+  // ==========================================================
+  // EXPORT TYPE
+  // ==========================================================
+
   const [exportType, setExportType] =
     useState("all");
+
+
+  // ==========================================================
+  // EXPORT STATUS
+  // ==========================================================
+
+  const [exportStatus, setExportStatus] =
+    useState("all");
+
+
+  // ==========================================================
+  // ERROR
+  // ==========================================================
 
   const [errorMsg, setErrorMsg] =
     useState("");
 
+
+  // ==========================================================
+  // MAX CHART VALUE
+  // ==========================================================
+
   const maxChartValue = Math.max(
-    ...chartData.map((item) => Number(item.value) || 0),
+    ...chartData.map(
+      (item) =>
+        Number(item.value) || 0
+    ),
     1
   );
 
@@ -88,7 +152,9 @@ const MetricsPage = () => {
     try {
 
       setLoading(true);
+
       setErrorMsg("");
+
 
       const response =
         await axios.get(
@@ -139,6 +205,7 @@ const MetricsPage = () => {
 
 
       setChartData([]);
+
       setTotalPublications(0);
 
     } finally {
@@ -201,8 +268,12 @@ const MetricsPage = () => {
 
   // ==========================================================
   // DOWNLOAD EXCEL
-  // IMPORTANT:
-  // Uses SAME fromDate and toDate
+  //
+  // Uses:
+  // 1. Publication Type
+  // 2. Publication Status
+  // 3. From Date
+  // 4. To Date
   // ==========================================================
 
   const handleDownloadExcel = async (
@@ -213,6 +284,10 @@ const MetricsPage = () => {
 
       setErrorMsg("");
 
+
+      // ------------------------------------------------------
+      // VALIDATE DATES
+      // ------------------------------------------------------
 
       if (!fromDate || !toDate) {
 
@@ -236,6 +311,10 @@ const MetricsPage = () => {
       }
 
 
+      // ------------------------------------------------------
+      // START DOWNLOAD
+      // ------------------------------------------------------
+
       setDownloading(true);
 
 
@@ -244,9 +323,17 @@ const MetricsPage = () => {
           `${API_BASE}/api/reports/publications/excel`,
           {
             params: {
+
+              // Publication type
               type: selectedType,
+
+              // Final publication status
+              status: exportStatus,
+
+              // Date range
               from: fromDate,
               to: toDate,
+
             },
 
             headers: {
@@ -260,7 +347,7 @@ const MetricsPage = () => {
 
 
       // ======================================================
-      // CREATE DOWNLOAD
+      // CREATE BLOB
       // ======================================================
 
       const blob =
@@ -273,9 +360,19 @@ const MetricsPage = () => {
         );
 
 
-      const downloadUrl =
-        window.URL.createObjectURL(blob);
+      // ======================================================
+      // CREATE DOWNLOAD URL
+      // ======================================================
 
+      const downloadUrl =
+        window.URL.createObjectURL(
+          blob
+        );
+
+
+      // ======================================================
+      // CREATE DOWNLOAD LINK
+      // ======================================================
 
       const link =
         document.createElement("a");
@@ -285,18 +382,42 @@ const MetricsPage = () => {
         downloadUrl;
 
 
-      link.download =
-        `publication-report-${fromDate}-to-${toDate}.xlsx`;
+      // ======================================================
+      // FILE NAME
+      // ======================================================
 
+      const statusName =
+        exportStatus === "approved"
+          ? "approved"
+          : exportStatus === "not_approved"
+            ? "not-approved"
+            : "all-statuses";
+
+
+      const typeName =
+        selectedType === "all"
+          ? "all-publications"
+          : selectedType;
+
+
+      link.download =
+        `${typeName}-${statusName}-${fromDate}-to-${toDate}.xlsx`;
+
+
+      // ======================================================
+      // START DOWNLOAD
+      // ======================================================
 
       document.body.appendChild(link);
 
-
       link.click();
-
 
       link.remove();
 
+
+      // ======================================================
+      // CLEANUP
+      // ======================================================
 
       window.URL.revokeObjectURL(
         downloadUrl
@@ -310,11 +431,6 @@ const MetricsPage = () => {
         error
       );
 
-
-      // ======================================================
-      // IMPORTANT:
-      // Axios returns the error response as Blob
-      // ======================================================
 
       setErrorMsg(
         "Failed to download Excel report"
@@ -360,37 +476,88 @@ const MetricsPage = () => {
 
 
           {/* ================================================= */}
-          {/* EXCEL BUTTON */}
+          {/* EXCEL EXPORT */}
           {/* ================================================= */}
 
-          {user?.role === "super_admin" && (
+          {[
+            "super_admin",
+            "directorate",
+          ].includes(user?.activeRole) && (
 
             <div className="export-dropdown-group">
+
+              {/* ============================================= */}
+              {/* PUBLICATION TYPE */}
+              {/* ============================================= */}
 
               <select
                 value={exportType}
                 onChange={(event) =>
-                  setExportType(event.target.value)
+                  setExportType(
+                    event.target.value
+                  )
                 }
                 className="export-dropdown"
                 aria-label="Select publication type for Excel export"
               >
 
-                {exportTypeOptions.map((option) => (
-                  <option
-                    key={option.value}
-                    value={option.value}
-                  >
-                    {option.label}
-                  </option>
-                ))}
+                {exportTypeOptions.map(
+                  (option) => (
+
+                    <option
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </option>
+
+                  )
+                )}
 
               </select>
+
+
+              {/* ============================================= */}
+              {/* PUBLICATION STATUS */}
+              {/* ============================================= */}
+
+              <select
+                value={exportStatus}
+                onChange={(event) =>
+                  setExportStatus(
+                    event.target.value
+                  )
+                }
+                className="export-dropdown"
+                aria-label="Select publication status for Excel export"
+              >
+
+                {exportStatusOptions.map(
+                  (option) => (
+
+                    <option
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </option>
+
+                  )
+                )}
+
+              </select>
+
+
+              {/* ============================================= */}
+              {/* DOWNLOAD BUTTON */}
+              {/* ============================================= */}
 
               <button
                 type="button"
                 onClick={() =>
-                  handleDownloadExcel(exportType)
+                  handleDownloadExcel(
+                    exportType
+                  )
                 }
                 disabled={downloading}
                 className="btn-teal"
@@ -416,7 +583,6 @@ const MetricsPage = () => {
         <div className="filter-card-lg">
 
           <div className="filter-grid">
-
 
             {/* ============================================== */}
             {/* FROM DATE */}
@@ -517,14 +683,14 @@ const MetricsPage = () => {
               Total Publications
             </p>
 
-            <h2
-              className="text-3xl font-bold"
-            >
+            <h2 className="text-3xl font-bold">
               {totalPublications}
             </h2>
 
             <p className="text-muted">
-              {fromDate} → {toDate}
+              {formatReportDate(fromDate)}
+              {" → "}
+              {formatReportDate(toDate)}
             </p>
 
           </div>
@@ -537,6 +703,7 @@ const MetricsPage = () => {
         {/* ================================================== */}
 
         <div className="metrics-chart-card">
+
           {loading ? (
 
             <div className="metrics-chart-empty">
@@ -552,34 +719,75 @@ const MetricsPage = () => {
           ) : (
 
             <div className="metrics-chart">
+
               <div className="metrics-chart-heading">
+
                 <h2 className="section-heading">
                   Publications by Type
                 </h2>
+
                 <p className="text-muted">
-                  {formatReportDate(fromDate)} to {formatReportDate(toDate)}
+                  {formatReportDate(fromDate)}
+                  {" to "}
+                  {formatReportDate(toDate)}
                 </p>
+
               </div>
+
 
               <div className="metrics-chart-rows">
-                {chartData.map((item) => {
-                  const value = Number(item.value) || 0;
-                  const width = `${(value / maxChartValue) * 100}%`;
 
-                  return (
-                    <div className="metrics-chart-row" key={item.label}>
-                      <span className="metrics-chart-label">{item.label}</span>
-                      <span className="metrics-chart-track">
-                        <span
-                          className="metrics-chart-bar"
-                          style={{ width }}
-                        />
-                      </span>
-                      <span className="metrics-chart-value">{value}</span>
-                    </div>
-                  );
-                })}
+                {chartData.map(
+                  (item) => {
+
+                    const value =
+                      Number(item.value) || 0;
+
+
+                    const width =
+                      `${(
+                        value /
+                        maxChartValue
+                      ) * 100}%`;
+
+
+                    return (
+
+                      <div
+                        className="metrics-chart-row"
+                        key={item.label}
+                      >
+
+                        <span className="metrics-chart-label">
+                          {item.label}
+                        </span>
+
+
+                        <span className="metrics-chart-track">
+
+                          <span
+                            className="metrics-chart-bar"
+                            style={{
+                              width,
+                            }}
+                          />
+
+                        </span>
+
+
+                        <span className="metrics-chart-value">
+                          {value}
+                        </span>
+
+                      </div>
+
+                    );
+
+                  }
+                )}
+
               </div>
+
             </div>
 
           )}
