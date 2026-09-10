@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import DashboardLayout from "../../components/layout/DashboardLayout";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
@@ -123,6 +124,7 @@ const AuthorDetails = ({
 const ConferencePublicationPage = () => {
 
   const navigate = useNavigate();
+  const notify = useNotificationMessage();
 
   const token = localStorage.getItem("token");
 
@@ -331,9 +333,7 @@ const ConferencePublicationPage = () => {
 
     if (!file) {
 
-      alert(
-        "Please upload the conference publication file"
-      );
+      notify("Please upload the conference publication file.", null, "Validation Required");
 
       return;
 
@@ -346,9 +346,7 @@ const ConferencePublicationPage = () => {
 
     if (!form.title.trim()) {
 
-      alert(
-        "Please enter the publication title"
-      );
+      notify("Please enter the publication title.", null, "Validation Required");
 
       return;
 
@@ -361,9 +359,7 @@ const ConferencePublicationPage = () => {
 
     if (!form.conference_name.trim()) {
 
-      alert(
-        "Please enter the conference name"
-      );
+      notify("Please enter the conference name.", null, "Validation Required");
 
       return;
 
@@ -372,9 +368,7 @@ const ConferencePublicationPage = () => {
 
     if (!form.publication_date) {
 
-      alert(
-        "Please select the publication date"
-      );
+      notify("Please select the publication date.", null, "Validation Required");
 
       return;
 
@@ -383,9 +377,7 @@ const ConferencePublicationPage = () => {
 
     if (!form.scope) {
 
-      alert(
-        "Please select National or International"
-      );
+      notify("Please select National or International.", null, "Validation Required");
 
       return;
 
@@ -394,9 +386,7 @@ const ConferencePublicationPage = () => {
 
     if (!form.organizer_society.trim()) {
 
-      alert(
-        "Please enter the organizer / society"
-      );
+      notify("Please enter the organizer or society.", null, "Validation Required");
 
       return;
 
@@ -405,9 +395,7 @@ const ConferencePublicationPage = () => {
 
     if (!form.conference_city.trim()) {
 
-      alert(
-        "Please enter the conference city"
-      );
+      notify("Please enter the conference city.", null, "Validation Required");
 
       return;
 
@@ -416,9 +404,7 @@ const ConferencePublicationPage = () => {
 
     if (!form.conference_country.trim()) {
 
-      alert(
-        "Please enter the conference country"
-      );
+      notify("Please enter the conference country.", null, "Validation Required");
 
       return;
 
@@ -427,9 +413,7 @@ const ConferencePublicationPage = () => {
 
     if (!form.conference_date) {
 
-      alert(
-        "Please select the conference date"
-      );
+      notify("Please select the conference date.", null, "Validation Required");
 
       return;
 
@@ -451,9 +435,7 @@ const ConferencePublicationPage = () => {
 
     if (cleanedAuthors.length === 0) {
 
-      alert(
-        "Please add at least one author"
-      );
+      notify("Please add at least one author.", null, "Validation Required");
 
       return;
 
@@ -667,9 +649,7 @@ const ConferencePublicationPage = () => {
       );
 
 
-      alert(
-        "Conference publication added successfully!"
-      );
+      notify("The conference publication was successfully created.", null, "Publication Created");
 
 
       navigate(
@@ -691,11 +671,7 @@ const ConferencePublicationPage = () => {
       );
 
 
-      alert(
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        "Failed to add conference publication"
-      );
+      notify(error, "Unable to create the conference publication. Please try again.", "Publication Creation Failed");
 
 
     } finally {

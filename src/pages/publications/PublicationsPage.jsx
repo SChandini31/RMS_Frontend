@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
 const PublicationsPage = () => {
+  const notify = useNotificationMessage();
   const [publications, setPublications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState("");
@@ -116,6 +118,7 @@ const PublicationsPage = () => {
       );
 
       setPublications([]);
+      notify(error, "Unable to load publications. Please try again.", "Publication Request Failed");
 
       setPagination({
         currentPage: 1,
@@ -154,6 +157,12 @@ const PublicationsPage = () => {
       );
 
       fetchPublications();
+      const title = status === "approved"
+        ? "Publication Approved"
+        : status === "rejected"
+          ? "Publication Rejected"
+          : "Publication Status Changed";
+      notify(`The publication has been ${status}.`, null, title);
 
     } catch (error) {
       console.error(
@@ -161,11 +170,7 @@ const PublicationsPage = () => {
         error
       );
 
-      alert(
-        error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Failed to update publication status"
-      );
+      notify(error, "Unable to update the publication status. Please try again.", "Publication Update Failed");
     }
   };
 

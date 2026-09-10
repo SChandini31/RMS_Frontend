@@ -2,6 +2,7 @@ import { useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
@@ -40,6 +41,7 @@ const Field = ({
 
 const ResearchProjectPublicationPage = () => {
   const navigate = useNavigate();
+  const notify = useNotificationMessage();
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
@@ -166,9 +168,7 @@ const ResearchProjectPublicationPage = () => {
     e.preventDefault();
 
     if (!file) {
-      alert(
-        "Please upload the research project document"
-      );
+      notify("Please upload the research project document.", null, "Validation Required");
       return;
     }
 
@@ -334,9 +334,7 @@ const ResearchProjectPublicationPage = () => {
         response.data
       );
 
-      alert(
-        "✅ Research project added successfully!"
-      );
+      notify("The research project was successfully created.", null, "Publication Created");
 
       navigate("/publications");
 
@@ -355,11 +353,7 @@ const ResearchProjectPublicationPage = () => {
         )
       );
 
-      alert(
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "❌ Failed to create research project"
-      );
+      notify(error, "Unable to create the research project. Please try again.", "Publication Creation Failed");
 
     } finally {
       setSubmitting(false);

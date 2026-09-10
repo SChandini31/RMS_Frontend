@@ -2,6 +2,7 @@ import { useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
@@ -40,6 +41,7 @@ const Field = ({
 
 const PatentPublicationPage = () => {
   const navigate = useNavigate();
+  const notify = useNotificationMessage();
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
@@ -151,7 +153,7 @@ const PatentPublicationPage = () => {
     e.preventDefault();
 
     if (!file) {
-      alert("Please upload the patent document");
+      notify("Please upload the patent document.", null, "Validation Required");
       return;
     }
 
@@ -321,9 +323,7 @@ const PatentPublicationPage = () => {
         response.data
       );
 
-      alert(
-        "✅ Patent added successfully!"
-      );
+      notify("The patent publication was successfully created.", null, "Publication Created");
 
       navigate("/publications");
 
@@ -342,11 +342,7 @@ const PatentPublicationPage = () => {
         )
       );
 
-      alert(
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "❌ Failed to create patent"
-      );
+      notify(error, "Unable to create the patent publication. Please try again.", "Publication Creation Failed");
 
     } finally {
       setSubmitting(false);

@@ -2,6 +2,7 @@ import { useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
@@ -29,6 +30,7 @@ const roles = [
 
 const AddUsersPage = () => {
   const navigate = useNavigate();
+  const notify = useNotificationMessage();
   const token = localStorage.getItem("token");
   const currentUser = JSON.parse(localStorage.getItem("user"));
 
@@ -81,17 +83,17 @@ const AddUsersPage = () => {
       : [currentUser?.role];
 
     if (!currentUserRoles.includes("super_admin")) {
-      alert("Only super admin can add users");
+      notify("Only a super admin can add users.", null, "Action Required");
       return;
     }
 
     if (form.role.length === 0) {
-      alert("Select at least one role");
+      notify("Select at least one role.", null, "Validation Required");
       return;
     }
 
     if (!form.organization_institution.trim()) {
-      alert("Enter an organization or institution");
+      notify("Enter an organization or institution.", null, "Validation Required");
       return;
     }
 
@@ -109,23 +111,19 @@ const AddUsersPage = () => {
         organization_institution: form.organization_institution.trim(),
       };
 
-      const res = await axios.post(`${API_BASE}/api/users`, payload, {
+      await axios.post(`${API_BASE}/api/users`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      alert(res.data?.message || "✅ User created successfully");
+      notify("The user account was successfully created.", null, "User Created");
 
       navigate("/users");
     } catch (error) {
       console.error("ADD USER ERROR:", error);
 
-      alert(
-        error.response?.data?.message ||
-          error.response?.data?.error ||
-          "❌ Failed to create user"
-      );
+      notify(error, "Unable to create the user. Please try again.", "User Creation Failed");
     } finally {
       setSubmitting(false);
     }

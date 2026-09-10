@@ -37,7 +37,7 @@ function getNotificationDetails(message, customTitle) {
           : "Validation Required"),
 
     message: text
-      .replace(/^[✅❌⚠️]\s*/, "")
+      .replace(/^(?:✅|❌|⚠️)\s*/u, "")
       .trim(),
   };
 }

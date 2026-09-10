@@ -2,6 +2,7 @@ import { useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
@@ -40,6 +41,7 @@ const Field = ({
 
 const JournalPublicationPage = () => {
   const navigate = useNavigate();
+  const notify = useNotificationMessage();
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
@@ -114,7 +116,7 @@ const JournalPublicationPage = () => {
     e.preventDefault();
 
     if (!file) {
-      alert("Please upload the publication file");
+      notify("Please upload the publication file.", null, "Validation Required");
       return;
     }
 
@@ -294,9 +296,7 @@ const JournalPublicationPage = () => {
         response.data
       );
 
-      alert(
-        "✅ Journal publication added successfully!"
-      );
+      notify("The journal publication was successfully created.", null, "Publication Created");
 
       navigate("/publications");
 
@@ -308,11 +308,7 @@ const JournalPublicationPage = () => {
   JSON.stringify(error.response?.data, null, 2)
 );
 
-  alert(
-    error.response?.data?.message ||
-    error.response?.data?.error ||
-    "❌ Failed to create publication"
-  );
+  notify(error, "Unable to create the journal publication. Please try again.", "Publication Creation Failed");
 
 
     } finally {

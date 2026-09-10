@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import axios from "axios";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 import {
   ResponsiveContainer,
   BarChart,
@@ -32,6 +33,7 @@ const StatCard = ({ title, value, color }) => (
 );
 
 const AuditLogsPage = () => {
+  const notify = useNotificationMessage();
   const token = localStorage.getItem("token");
 
   const [logs, setLogs] = useState([]);
@@ -79,6 +81,7 @@ const AuditLogsPage = () => {
       });
     } catch (err) {
       console.error("FILTER FETCH ERROR:", err);
+      notify(err, "Unable to load audit log filters. Please try again.", "Audit Request Failed");
     }
   };
 
@@ -117,6 +120,7 @@ const AuditLogsPage = () => {
       );
     } catch (err) {
       console.error("LOG FETCH ERROR:", err);
+      notify(err, "Unable to load audit logs. Please try again.", "Audit Request Failed");
       setLogs([]);
       setPagination({
         currentPage: 1,
@@ -143,6 +147,7 @@ const AuditLogsPage = () => {
       setStats(res.data || {});
     } catch (err) {
       console.error("STATS FETCH ERROR:", err);
+      notify(err, "Unable to load audit statistics. Please try again.", "Audit Request Failed");
     }
   };
 
@@ -204,13 +209,10 @@ const AuditLogsPage = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      notify("The audit log report was downloaded successfully.", null, "Excel Downloaded");
     } catch (err) {
       console.error("AUDIT EXCEL DOWNLOAD ERROR:", err);
-      alert(
-        err.response?.data?.message ||
-          err.response?.data?.error ||
-          "Failed to download audit logs Excel"
-      );
+      notify(err, "Unable to download the Excel report. Please try again.", "Excel Export Failed");
     }
   };
 

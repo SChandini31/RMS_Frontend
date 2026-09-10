@@ -2,6 +2,7 @@ import { useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
@@ -40,6 +41,7 @@ const Field = ({
 
 const ConsultancyPublicationPage = () => {
   const navigate = useNavigate();
+  const notify = useNotificationMessage();
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
@@ -133,7 +135,7 @@ const ConsultancyPublicationPage = () => {
     e.preventDefault();
 
     if (!file) {
-      alert("Please upload the consultancy document");
+      notify("Please upload the consultancy document.", null, "Validation Required");
       return;
     }
 
@@ -288,9 +290,7 @@ const ConsultancyPublicationPage = () => {
         response.data
       );
 
-      alert(
-        "✅ Consultancy added successfully!"
-      );
+      notify("The consultancy publication was successfully created.", null, "Publication Created");
 
       navigate("/publications");
 
@@ -309,11 +309,7 @@ const ConsultancyPublicationPage = () => {
         )
       );
 
-      alert(
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "❌ Failed to create consultancy"
-      );
+      notify(error, "Unable to create the consultancy publication. Please try again.", "Publication Creation Failed");
 
     } finally {
       setSubmitting(false);

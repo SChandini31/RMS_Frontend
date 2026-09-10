@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import DashboardLayout from "../../components/layout/DashboardLayout";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
@@ -57,6 +58,7 @@ const emptyAuthor = () => ({
 const BookChapterPublicationPage = () => {
 
   const navigate = useNavigate();
+  const notify = useNotificationMessage();
 
   const token = localStorage.getItem("token");
 
@@ -224,9 +226,7 @@ const BookChapterPublicationPage = () => {
 
     if (!file) {
 
-      alert(
-        "Please upload the book chapter file."
-      );
+      notify("Please upload the book chapter file.", null, "Validation Required");
 
       return;
 
@@ -239,9 +239,7 @@ const BookChapterPublicationPage = () => {
 
     if (!form.title.trim()) {
 
-      alert(
-        "Please enter the publication title."
-      );
+      notify("Please enter the publication title.", null, "Validation Required");
 
       return;
 
@@ -263,9 +261,7 @@ const BookChapterPublicationPage = () => {
 
     if (cleanedAuthors.length === 0) {
 
-      alert(
-        "Please add at least one author."
-      );
+      notify("Please add at least one author.", null, "Validation Required");
 
       return;
 
@@ -278,9 +274,7 @@ const BookChapterPublicationPage = () => {
 
     if (!form.chapter_title.trim()) {
 
-      alert(
-        "Please enter the chapter title."
-      );
+      notify("Please enter the chapter title.", null, "Validation Required");
 
       return;
 
@@ -289,9 +283,7 @@ const BookChapterPublicationPage = () => {
 
     if (!form.book_title.trim()) {
 
-      alert(
-        "Please enter the book title."
-      );
+      notify("Please enter the book title.", null, "Validation Required");
 
       return;
 
@@ -300,9 +292,7 @@ const BookChapterPublicationPage = () => {
 
     if (!form.editor.trim()) {
 
-      alert(
-        "Please enter the editor name."
-      );
+      notify("Please enter the editor name.", null, "Validation Required");
 
       return;
 
@@ -311,9 +301,7 @@ const BookChapterPublicationPage = () => {
 
     if (!form.publisher.trim()) {
 
-      alert(
-        "Please enter the publisher."
-      );
+      notify("Please enter the publisher.", null, "Validation Required");
 
       return;
 
@@ -322,9 +310,7 @@ const BookChapterPublicationPage = () => {
 
     if (!form.publication_date) {
 
-      alert(
-        "Please select the publication date."
-      );
+      notify("Please select the publication date.", null, "Validation Required");
 
       return;
 
@@ -333,9 +319,7 @@ const BookChapterPublicationPage = () => {
 
     if (!form.scope) {
 
-      alert(
-        "Please select National or International."
-      );
+      notify("Please select National or International.", null, "Validation Required");
 
       return;
 
@@ -344,9 +328,7 @@ const BookChapterPublicationPage = () => {
 
     if (!form.issn.trim()) {
 
-      alert(
-        "Please enter the ISSN."
-      );
+      notify("Please enter the ISSN.", null, "Validation Required");
 
       return;
 
@@ -595,9 +577,7 @@ const BookChapterPublicationPage = () => {
       );
 
 
-      alert(
-        "Book Chapter publication added successfully!"
-      );
+      notify("The book chapter publication was successfully created.", null, "Publication Created");
 
 
       navigate(
@@ -619,11 +599,7 @@ const BookChapterPublicationPage = () => {
       );
 
 
-      alert(
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        "Failed to add book chapter"
-      );
+      notify(error, "Unable to create the book chapter publication. Please try again.", "Publication Creation Failed");
 
 
     } finally {

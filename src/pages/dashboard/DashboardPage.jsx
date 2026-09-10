@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import axios from "axios";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 import {
   PieChart,
   Pie,
@@ -37,6 +38,7 @@ const RING_COLOR_CLASS = {
 };
 
 const DashboardPage = () => {
+  const notify = useNotificationMessage();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -81,6 +83,7 @@ const DashboardPage = () => {
         setErrorMsg(
           error.response?.data?.message || "Failed to load dashboard data"
         );
+        notify(error, "Unable to load dashboard data. Please try again.", "Dashboard Request Failed");
       } finally {
         setLoading(false);
       }
@@ -91,6 +94,7 @@ const DashboardPage = () => {
     } else {
       setLoading(false);
       setErrorMsg("No token found. Please login again.");
+      notify("No token found. Please login again.", null, "Login Required");
     }
   }, [token, selectedSchool]);
 

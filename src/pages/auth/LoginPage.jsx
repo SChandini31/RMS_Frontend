@@ -9,11 +9,11 @@ import {
   FileText,
   ChevronDown,
 } from "lucide-react";
-import { useNotification } from "../../context/NotificationContext";
-import { getFriendlyError } from "../../utils/notifyError";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const notify = useNotificationMessage();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -48,19 +48,23 @@ export default function LoginPage() {
         setAvailableRoles(res.data.roles || []);
         setSelectedRole(res.data.roles?.[0] || "");
         setErrorMsg("Select a role to continue");
+        notify("Select a role to continue.", null, "Action Required");
         return;
       }
 
       if (!res.data?.token || !res.data?.user) {
         setErrorMsg("Invalid login response from server");
+        notify("The server returned an invalid login response.", null, "Login Failed");
         return;
       }
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
+      notify("Welcome back to the Research Management System.", null, "Login Successful");
       navigate("/dashboard");
     } catch (error) {
+      notify(error, "Unable to sign in. Please check your credentials and try again.", "Login Failed");
       setErrorMsg(error.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);

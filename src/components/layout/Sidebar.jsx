@@ -7,6 +7,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const roleMenus = {
   super_admin: [
@@ -52,6 +53,7 @@ const roleMenus = {
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const navigate = useNavigate();
+  const notify = useNotificationMessage();
 
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.role || "student";
@@ -60,6 +62,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
 
   const handleLogout = () => {
     localStorage.clear();
+    notify("You have been signed out successfully.", null, "Logout Successful");
     navigate("/");
   };
 

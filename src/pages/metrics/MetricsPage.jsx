@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import axios from "axios";
 import { PUBLICATION_TYPES } from "../../config/publicationTypes";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
@@ -53,6 +54,7 @@ const formatReportDate = (date) => {
 // ============================================================
 
 const MetricsPage = () => {
+  const notify = useNotificationMessage();
 
   // ==========================================================
   // USER
@@ -202,6 +204,7 @@ const MetricsPage = () => {
         error.response?.data?.message ||
           "Failed to load publication metrics"
       );
+      notify(error, "Unable to load publication metrics. Please try again.", "Metrics Request Failed");
 
 
       setChartData([]);
@@ -244,6 +247,7 @@ const MetricsPage = () => {
       setErrorMsg(
         "Please select both From Date and To Date"
       );
+      notify("Please select both From Date and To Date.", null, "Validation Required");
 
       return;
 
@@ -255,6 +259,7 @@ const MetricsPage = () => {
       setErrorMsg(
         "From Date cannot be greater than To Date"
       );
+      notify("From Date cannot be greater than To Date.", null, "Validation Required");
 
       return;
 
@@ -294,6 +299,7 @@ const MetricsPage = () => {
         setErrorMsg(
           "Please select both From Date and To Date"
         );
+        notify("Please select both From Date and To Date.", null, "Validation Required");
 
         return;
 
@@ -305,6 +311,7 @@ const MetricsPage = () => {
         setErrorMsg(
           "From Date cannot be greater than To Date"
         );
+        notify("From Date cannot be greater than To Date.", null, "Validation Required");
 
         return;
 
@@ -422,6 +429,7 @@ const MetricsPage = () => {
       window.URL.revokeObjectURL(
         downloadUrl
       );
+      notify("The publication report was downloaded successfully.", null, "Excel Downloaded");
 
 
     } catch (error) {
@@ -435,6 +443,7 @@ const MetricsPage = () => {
       setErrorMsg(
         "Failed to download Excel report"
       );
+      notify(error, "Unable to download the Excel report. Please try again.", "Excel Export Failed");
 
     } finally {
 

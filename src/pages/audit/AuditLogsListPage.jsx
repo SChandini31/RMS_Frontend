@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import axios from "axios";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
 const AuditLogsListPage = () => {
+  const notify = useNotificationMessage();
   const token = localStorage.getItem("token");
 
   const [logs, setLogs] = useState([]);
@@ -44,6 +46,7 @@ const AuditLogsListPage = () => {
       });
     } catch (err) {
       console.error("FILTER FETCH ERROR:", err);
+      notify(err, "Unable to load audit log filters. Please try again.", "Audit Request Failed");
     }
   };
 
@@ -82,6 +85,7 @@ const AuditLogsListPage = () => {
       );
     } catch (err) {
       console.error("LOG FETCH ERROR:", err);
+      notify(err, "Unable to load audit logs. Please try again.", "Audit Request Failed");
       setLogs([]);
       setPagination({
         currentPage: 1,

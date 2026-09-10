@@ -3,10 +3,12 @@ import DashboardLayout from "../../components/layout/DashboardLayout";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { Search } from "lucide-react";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
 const UsersPage = () => {
+  const notify = useNotificationMessage();
   const token = localStorage.getItem("token");
   const currentUser = JSON.parse(localStorage.getItem("user"));
   const currentUserRoles = Array.isArray(currentUser?.role)
@@ -62,11 +64,7 @@ const UsersPage = () => {
       );
     } catch (error) {
       console.error("FETCH USERS ERROR:", error);
-      alert(
-        error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Failed to load users"
-      );
+      notify(error, "Unable to load users. Please try again.", "User Request Failed");
       setUsers([]);
       setPagination({
         currentPage: 1,
@@ -97,13 +95,10 @@ const UsersPage = () => {
       });
 
       fetchUsers(currentPage);
+      notify("The user account was successfully deleted.", null, "User Deleted");
     } catch (error) {
       console.error("DELETE USER ERROR:", error);
-      alert(
-        error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Failed to delete user"
-      );
+      notify(error, "Unable to delete the user. Please try again.", "User Deletion Failed");
     }
   };
 

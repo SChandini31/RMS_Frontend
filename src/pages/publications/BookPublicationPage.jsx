@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import DashboardLayout from "../../components/layout/DashboardLayout";
+import { useNotificationMessage } from "../../utils/useNotificationMessage";
 
 const API_BASE = "https://rms-897z.onrender.com";
 
@@ -55,6 +56,7 @@ const emptyAuthor = () => ({
 const BookPublicationPage = () => {
 
   const navigate = useNavigate();
+  const notify = useNotificationMessage();
 
   const token = localStorage.getItem("token");
 
@@ -203,7 +205,7 @@ const BookPublicationPage = () => {
 
     if (!file) {
 
-      alert("Please upload the book file.");
+      notify("Please upload the book file.", null, "Validation Required");
 
       return;
 
@@ -216,7 +218,7 @@ const BookPublicationPage = () => {
 
     if (!form.title.trim()) {
 
-      alert("Please enter the book title.");
+      notify("Please enter the book title.", null, "Validation Required");
 
       return;
 
@@ -237,7 +239,7 @@ const BookPublicationPage = () => {
 
     if (cleanedAuthors.length === 0) {
 
-      alert("Please add at least one author.");
+      notify("Please add at least one author.", null, "Validation Required");
 
       return;
 
@@ -250,7 +252,7 @@ const BookPublicationPage = () => {
 
     if (!form.publisher.trim()) {
 
-      alert("Please enter the publisher.");
+      notify("Please enter the publisher.", null, "Validation Required");
 
       return;
 
@@ -259,7 +261,7 @@ const BookPublicationPage = () => {
 
     if (!form.publication_date) {
 
-      alert("Please select the publication date.");
+      notify("Please select the publication date.", null, "Validation Required");
 
       return;
 
@@ -268,9 +270,7 @@ const BookPublicationPage = () => {
 
     if (!form.scope) {
 
-      alert(
-        "Please select National or International."
-      );
+      notify("Please select National or International.", null, "Validation Required");
 
       return;
 
@@ -279,7 +279,7 @@ const BookPublicationPage = () => {
 
     if (!form.isbn.trim()) {
 
-      alert("Please enter the ISBN.");
+      notify("Please enter the ISBN.", null, "Validation Required");
 
       return;
 
@@ -496,9 +496,7 @@ const BookPublicationPage = () => {
       );
 
 
-      alert(
-        "Book publication added successfully!"
-      );
+      notify("The book publication was successfully created.", null, "Publication Created");
 
 
       navigate("/publications");
@@ -518,11 +516,7 @@ const BookPublicationPage = () => {
       );
 
 
-      alert(
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        "Failed to add book"
-      );
+      notify(error, "Unable to create the book publication. Please try again.", "Publication Creation Failed");
 
 
     } finally {

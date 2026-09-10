@@ -14,7 +14,7 @@ export function getFriendlyError(
   }
 
   const cleaned = raw
-    .replace(/^[✅❌⚠️]\s*/, "")
+    .replace(/^(?:✅|❌|⚠️)\s*/u, "")
     .trim();
 
   if (!cleaned || cleaned.length > 180) {
